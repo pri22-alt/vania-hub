@@ -1,130 +1,122 @@
 'use server'
 
-import { db } from '@/lib/db'
-import { budgets, expenses, income } from '@/lib/db/schema'
-import { and, eq, gte, lte, sql } from 'drizzle-orm'
-import { revalidatePath } from 'next/cache'
+import { getExpenses } from './expenses'
+import { formatRM } from '@/lib/utils/currency'
 
-const SHARED_USER_ID = 'shared-user-123'
-
-export async function addBudget(data: {
-  name: string
-  categoryType: string
-  category: string
-  budgetAmount: string
-  period: string
-  month?: string
-  alertThreshold?: number
-  notes?: string
-}) {
-  await db.insert(budgets).values({
-    userId: SHARED_USER_ID,
-    name: data.name,
-    categoryType: data.categoryType,
-    category: data.category,
-    budgetAmount: data.budgetAmount,
-    period: data.period,
-    month: data.month || null,
-    alertThreshold: data.alertThreshold || 80,
-    notes: data.notes || null,
-    isActive: true,
-  })
-  revalidatePath('/budgets')
-}
+// In-memory budget storage (in production, would use a database)
+// For now, we'll use predefined budget templates
+const DEFAULT_BUDGETS = [
+  {
+    id: 1,
+    name: 'Groceries',
+    category: 'Groceries',
+    categoryType: 'household',
+    budgetAmount: 800,
+    period: 'monthly',
+    alertThreshold: 80,
+    notes: 'Monthly grocery budget',
+  },
+  {
+    id: 2,
+    name: 'Utilities',
+    category: 'Utilities',
+    categoryType: 'household',
+    budgetAmount: 300,
+    period: 'monthly',
+    alertThreshold: 80,
+    notes: 'Water, electricity, internet',
+  },
+  {
+    id: 3,
+    name: 'Transport',
+    category: 'Transport',
+    categoryType: 'household',
+    budgetAmount: 400,
+    period: 'monthly',
+    alertThreshold: 80,
+    notes: 'Gas, parking, public transport',
+  },
+  {
+    id: 4,
+    name: 'Dining Out',
+    category: 'Dining',
+    categoryType: 'household',
+    budgetAmount: 500,
+    period: 'monthly',
+    alertThreshold: 80,
+    notes: 'Restaurants and cafes',
+  },
+  {
+    id: 5,
+    name: 'Office Supplies',
+    category: 'Office Supplies',
+    categoryType: 'business',
+    budgetAmount: 300,
+    period: 'monthly',
+    alertThreshold: 80,
+    notes: 'Business supplies',
+  },
+]
 
 export async function getBudgets() {
-  return db.select().from(budgets).where(eq(budgets.userId, SHARED_USER_ID)).orderBy(budgets.createdAt)
+  return DEFAULT_BUDGETS
 }
 
 export async function getBudgetById(id: number) {
-  const result = await db.select().from(budgets).where(eq(budgets.id, id))
-  return result[0] || null
-}
-
-export async function updateBudget(id: number, data: {
-  name?: string
-  budgetAmount?: string
-  alertThreshold?: number
-  notes?: string
-  isActive?: boolean
-}) {
-  await db.update(budgets).set({
-    ...data,
-    updatedAt: new Date(),
-  }).where(eq(budgets.id, id))
-  revalidatePath('/budgets')
-}
-
-export async function deleteBudget(id: number) {
-  await db.delete(budgets).where(eq(budgets.id, id))
-  revalidatePath('/budgets')
-}
-
-export async function getBudgetStatus(budgetId: number) {
-  const budget = await getBudgetById(budgetId)
-  if (!budget) return null
-
-  // Calculate spent amount based on budget period and category
-  const monthYearStr = budget.month || new Date().toISOString().slice(0, 7)
-  const startDate = `${monthYearStr}-01`
-  const endDate = new Date(parseInt(monthYearStr.split('-')[0]), parseInt(monthYearStr.split('-')[1]), 0).toISOString().split('T')[0]
-
-  let spentAmount = 0
-
-  if (budget.categoryType === 'household') {
-    const expenseData = await db.select({
-      total: sql<number>`COALESCE(SUM(CAST(amount AS FLOAT)), 0)`,
-    })
-      .from(expenses)
-      .where(and(
-        eq(expenses.userId, SHARED_USER_ID),
-        eq(expenses.categoryType, 'household'),
-        eq(expenses.category, budget.category),
-        gte(expenses.date, startDate),
-        lte(expenses.date, endDate),
-      ))
-
-    spentAmount = Number(expenseData[0]?.total || 0)
-  } else if (budget.categoryType === 'business') {
-    const expenseData = await db.select({
-      total: sql<number>`COALESCE(SUM(CAST(amount AS FLOAT)), 0)`,
-    })
-      .from(expenses)
-      .where(and(
-        eq(expenses.userId, SHARED_USER_ID),
-        eq(expenses.categoryType, 'business'),
-        eq(expenses.category, budget.category),
-        gte(expenses.date, startDate),
-        lte(expenses.date, endDate),
-      ))
-
-    spentAmount = Number(expenseData[0]?.total || 0)
-  }
-
-  const budgetAmountNum = Number(budget.budgetAmount)
-  const percentUsed = (spentAmount / budgetAmountNum) * 100
-  const remaining = budgetAmountNum - spentAmount
-  const isOverBudget = spentAmount > budgetAmountNum
-  const alertThreshold = budget.alertThreshold || 80
-  const shouldAlert = percentUsed >= alertThreshold
-
-  return {
-    budgetAmount: budgetAmountNum,
-    spentAmount,
-    remaining,
-    percentUsed,
-    isOverBudget,
-    shouldAlert,
-  }
+  return DEFAULT_BUDGETS.find(b => b.id === id)
 }
 
 export async function getAllBudgetsStatus() {
-  const allBudgets = await getBudgets()
-  const budgetsWithStatus = await Promise.all(
-    allBudgets.map(async (budget) => ({
+  const allBudgets = DEFAULT_BUDGETS
+  const expenses = await getExpenses()
+  const currentMonth = new Date().toISOString().slice(0, 7)
+
+  return allBudgets.map(budget => {
+    // Calculate spending for this budget's category this month
+    const budgetSpending = expenses
+      .filter(exp => {
+        const expMonth = exp.date instanceof Date 
+          ? exp.date.toISOString().slice(0, 7)
+          : typeof exp.date === 'string' 
+          ? exp.date.slice(0, 7)
+          : new Date(exp.date).toISOString().slice(0, 7)
+        return exp.category === budget.category && expMonth === currentMonth
+      })
+      .reduce((sum, exp) => sum + Number(exp.amount), 0)
+
+    const budgetAmount = Number(budget.budgetAmount)
+    const percentageUsed = budgetAmount > 0 ? (budgetSpending / budgetAmount) * 100 : 0
+    const remaining = budgetAmount - budgetSpending
+    const isOverBudget = budgetSpending > budgetAmount
+    const isWarning = percentageUsed >= budget.alertThreshold
+
+    return {
       ...budget,
-      status: await getBudgetStatus(budget.id),
-    }))
-  )
-  return budgetsWithStatus
+      spent: budgetSpending,
+      remaining: Math.max(0, remaining),
+      percentageUsed: Math.round(percentageUsed),
+      isOverBudget,
+      isWarning,
+      status: isOverBudget ? 'over' : isWarning ? 'warning' : 'safe',
+    }
+  })
+}
+
+export async function getBudgetsByCategory(categoryType: string) {
+  return DEFAULT_BUDGETS.filter(b => b.categoryType === categoryType)
+}
+
+export async function getBudgetSummary() {
+  const budgetsWithStatus = await getAllBudgetsStatus()
+
+  const summary = {
+    totalBudget: budgetsWithStatus.reduce((sum, b) => sum + b.budgetAmount, 0),
+    totalSpent: budgetsWithStatus.reduce((sum, b) => sum + b.spent, 0),
+    totalRemaining: budgetsWithStatus.reduce((sum, b) => sum + b.remaining, 0),
+    onTrack: budgetsWithStatus.filter(b => b.status === 'safe').length,
+    warnings: budgetsWithStatus.filter(b => b.status === 'warning').length,
+    overBudget: budgetsWithStatus.filter(b => b.status === 'over').length,
+  }
+
+  return summary
 }

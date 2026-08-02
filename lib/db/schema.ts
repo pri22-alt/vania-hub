@@ -239,19 +239,4 @@ export const invoiceLineItems = pgTable('invoice_line_items', {
   createdAt: timestamp('createdat').notNull().defaultNow(),
 })
 
-export const budgets = pgTable('budgets', {
-  id: serial('id').primaryKey(),
-  userId: text('userid').notNull(),
-  name: text('name').notNull(),
-  categoryType: varchar('categorytype', { length: 20 }).notNull().default('household'), // 'household' or 'business'
-  category: text('category').notNull(),
-  budgetAmount: decimal('budgetamount', { precision: 12, scale: 2 }).notNull(),
-  period: varchar('period', { length: 20 }).notNull().default('monthly'), // monthly, quarterly, yearly
-  month: varchar('month', { length: 7 }), // YYYY-MM for monthly budgets
-  year: varchar('year', { length: 4 }), // YYYY for yearly budgets
-  alertThreshold: integer('alertthreshold').notNull().default(80), // Alert at 80% spent
-  isActive: boolean('isactive').notNull().default(true),
-  notes: text('notes'),
-  createdAt: timestamp('createdat').notNull().defaultNow(),
-  updatedAt: timestamp('updatedat').notNull().defaultNow(),
-})
+

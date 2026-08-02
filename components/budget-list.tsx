@@ -1,23 +1,9 @@
 'use client'
 
 import { Card } from '@/components/ui/card'
-import { Button } from '@/components/ui/button'
 import { formatRM } from '@/lib/utils/currency'
-import { deleteBudget } from '@/app/actions/budgets'
-import { useState } from 'react'
 
 export function BudgetList({ budgets }: any) {
-  const [deletingId, setDeletingId] = useState<number | null>(null)
-
-  const handleDelete = async (id: number) => {
-    if (!confirm('Delete this budget?')) return
-    setDeletingId(id)
-    try {
-      await deleteBudget(id)
-    } finally {
-      setDeletingId(null)
-    }
-  }
 
   const getProgressColor = (percentUsed: number, isOverBudget: boolean) => {
     if (isOverBudget) return 'bg-destructive'
@@ -64,22 +50,11 @@ export function BudgetList({ budgets }: any) {
 
         return (
           <Card key={budget.id} className="p-6">
-            <div className="flex items-start justify-between mb-4">
-              <div>
-                <h3 className="font-semibold text-foreground">{budget.name}</h3>
-                <p className="text-sm text-muted-foreground">
-                  {budget.categoryType === 'business' ? '💼' : '🏠'} {budget.category}
-                </p>
-              </div>
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => handleDelete(budget.id)}
-                disabled={deletingId === budget.id}
-                className="text-destructive hover:bg-destructive/10"
-              >
-                Delete
-              </Button>
+            <div className="mb-4">
+              <h3 className="font-semibold text-foreground">{budget.name}</h3>
+              <p className="text-sm text-muted-foreground">
+                {budget.categoryType === 'business' ? '💼' : '🏠'} {budget.category}
+              </p>
             </div>
 
             {/* Spending Summary */}
