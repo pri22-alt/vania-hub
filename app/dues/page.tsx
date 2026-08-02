@@ -1,5 +1,3 @@
-'use server'
-
 import { auth } from '@/lib/auth'
 import { getDues } from '@/app/actions/dues'
 import { headers } from 'next/headers'

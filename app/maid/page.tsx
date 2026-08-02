@@ -1,5 +1,3 @@
-'use server'
-
 import { auth } from '@/lib/auth'
 import { getMaidAttendance } from '@/app/actions/maid'
 import { headers } from 'next/headers'

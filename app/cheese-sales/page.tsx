@@ -1,5 +1,3 @@
-'use server'
-
 import { auth } from '@/lib/auth'
 import { getCheesSales, getSalesStats, getSalesByCustomer, getSalesByProduct } from '@/app/actions/cheese-sales'
 import { headers } from 'next/headers'

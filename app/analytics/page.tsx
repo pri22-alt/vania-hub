@@ -1,5 +1,3 @@
-'use server'
-
 import { auth } from '@/lib/auth'
 import { getFinancialOverview, getExpensesByCategory, getPaymentMethodBreakdown } from '@/app/actions/analytics'
 import { headers } from 'next/headers'
@@ -7,9 +5,6 @@ import { redirect } from 'next/navigation'
 import { Card } from '@/components/ui/card'
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
-import { BarChart, Bar, PieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts'
-
-const COLORS = ['#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#ec4899', '#06b6d4', '#f97316']
 
 export default async function AnalyticsPage() {
   const session = await auth.api.getSession({ headers: await headers() })
@@ -86,53 +81,14 @@ export default async function AnalyticsPage() {
           </Card>
         </div>
 
-        {/* Charts Grid */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          {/* Expenses by Category */}
-          <Card className="p-6">
-            <h3 className="text-lg font-semibold text-foreground mb-4">Expenses by Category</h3>
-            {categoryData.length > 0 ? (
-              <ResponsiveContainer width="100%" height={300}>
-                <BarChart data={categoryData}>
-                  <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis dataKey="name" angle={-45} textAnchor="end" height={100} />
-                  <YAxis />
-                  <Tooltip formatter={(value) => formatCurrency(Number(value))} />
-                  <Bar dataKey="value" fill="#ef4444" />
-                </BarChart>
-              </ResponsiveContainer>
-            ) : (
-              <p className="text-muted-foreground text-center py-8">No expense data available</p>
-            )}
-          </Card>
-
-          {/* Payment Methods */}
-          <Card className="p-6">
-            <h3 className="text-lg font-semibold text-foreground mb-4">Payment Methods</h3>
-            {methodData.length > 0 ? (
-              <ResponsiveContainer width="100%" height={300}>
-                <PieChart>
-                  <Pie
-                    data={methodData}
-                    cx="50%"
-                    cy="50%"
-                    labelLine={false}
-                    label={({ name, value }) => `${name}: ${formatCurrency(Number(value))}`}
-                    outerRadius={80}
-                    fill="#8884d8"
-                    dataKey="value"
-                  >
-                    {methodData.map((_, index) => (
-                      <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                    ))}
-                  </Pie>
-                  <Tooltip formatter={(value) => formatCurrency(Number(value))} />
-                </PieChart>
-              </ResponsiveContainer>
-            ) : (
-              <p className="text-muted-foreground text-center py-8">No payment data available</p>
-            )}
-          </Card>
+        {/* Payment Methods Overview */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
+          {methodData.map((method, idx) => (
+            <Card key={idx} className="p-4">
+              <p className="text-sm text-muted-foreground mb-1">{method.name}</p>
+              <p className="text-xl font-bold">{formatCurrency(Number(method.value))}</p>
+            </Card>
+          ))}
         </div>
 
         {/* Category Breakdown Table */}

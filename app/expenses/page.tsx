@@ -1,5 +1,3 @@
-'use server'
-
 import { auth } from '@/lib/auth'
 import { getExpenses } from '@/app/actions/expenses'
 import { headers } from 'next/headers'
