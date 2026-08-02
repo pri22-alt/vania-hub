@@ -10,6 +10,7 @@ import { VirmaisClientsList } from '@/components/virmanis-clients-list'
 import { CompanySettingsForm } from '@/components/company-settings-form'
 import { InvoiceGenerator } from '@/components/invoice-generator'
 import { InvoiceList } from '@/components/invoice-list'
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion'
 import { formatRM } from '@/lib/utils/currency'
 
 export default async function VirmanisSalesPage() {
