@@ -1,18 +1,9 @@
-import { auth } from '@/lib/auth'
 import { getFinancialOverview, getExpensesByCategory, getPaymentMethodBreakdown } from '@/app/actions/analytics'
-import { headers } from 'next/headers'
-import { redirect } from 'next/navigation'
 import { Card } from '@/components/ui/card'
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
 
 export default async function AnalyticsPage() {
-  const session = await auth.api.getSession({ headers: await headers() })
-
-  if (!session?.user) {
-    redirect('/sign-in')
-  }
-
   const overview = await getFinancialOverview()
   const expensesByCategory = await getExpensesByCategory()
   const paymentMethods = await getPaymentMethodBreakdown()

@@ -1,7 +1,4 @@
-import { auth } from '@/lib/auth'
 import { getCheesSales, getSalesStats, getSalesByCustomer, getSalesByProduct } from '@/app/actions/cheese-sales'
-import { headers } from 'next/headers'
-import { redirect } from 'next/navigation'
 import { CheeseSalesForm } from '@/components/cheese-sales-form'
 import { CheeseSalesList } from '@/components/cheese-sales-list'
 import { CheeseSalesDashboard } from '@/components/cheese-sales-dashboard'
@@ -9,12 +6,6 @@ import Link from 'next/link'
 import { Button } from '@/components/ui/button'
 
 export default async function CheeseSalesPage() {
-  const session = await auth.api.getSession({ headers: await headers() })
-
-  if (!session?.user) {
-    redirect('/sign-in')
-  }
-
   const sales = await getCheesSales()
   const stats = await getSalesStats()
   const customerSales = await getSalesByCustomer()

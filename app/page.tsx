@@ -1,16 +1,8 @@
-import { auth } from '@/lib/auth'
-import { headers } from 'next/headers'
-import { redirect } from 'next/navigation'
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
 
-export default async function DashboardPage() {
-  const session = await auth.api.getSession({ headers: await headers() })
-
-  if (!session?.user) {
-    redirect('/sign-in')
-  }
+export default function DashboardPage() {
 
   return (
     <main className="min-h-screen bg-background">
@@ -22,10 +14,7 @@ export default async function DashboardPage() {
               <h1 className="text-3xl font-bold text-foreground">Vania Hub</h1>
               <p className="text-muted-foreground">Home & Business Finance Manager</p>
             </div>
-            <div className="text-right">
-              <p className="text-sm text-muted-foreground">Welcome,</p>
-              <p className="font-semibold text-foreground">{session.user.name}</p>
-            </div>
+
           </div>
         </div>
       </header>
