@@ -12,26 +12,21 @@ export async function getRecurringBills() {
 }
 
 export async function addRecurringBill(data: {
-  startDate: string
+  date?: string
   description: string
   amount: string
   category: string
-  recurringType: string
   dayOfMonth?: number
-  customDates?: string[]
   notes?: string
 }) {
-  const dayOfMonth = data.dayOfMonth || new Date(data.startDate).getDate()
+  const dayOfMonth = data.dayOfMonth || (data.date ? new Date(data.date).getDate() : new Date().getDate())
   
   await db.insert(recurringBills).values({
     userId: SHARED_USER_ID,
     description: data.description,
     amount: data.amount,
     category: data.category,
-    recurringType: data.recurringType,
-    startDate: data.startDate,
-    dayOfMonth: data.recurringType === 'monthly' ? dayOfMonth : null,
-    customDates: data.customDates && data.customDates.length > 0 ? JSON.stringify(data.customDates) : null,
+    dayOfMonth: dayOfMonth,
     notes: data.notes || null,
     isActive: true,
   })
@@ -42,23 +37,14 @@ export async function updateRecurringBill(id: number, data: {
   description?: string
   amount?: string
   category?: string
-  recurringType?: string
-  dayOfMonth?: number | null
-  customDates?: string[]
+  dayOfMonth?: number
   isActive?: boolean
   notes?: string
 }) {
-  const updateData: any = { updatedAt: new Date() }
-  if (data.description) updateData.description = data.description
-  if (data.amount) updateData.amount = data.amount
-  if (data.category) updateData.category = data.category
-  if (data.recurringType) updateData.recurringType = data.recurringType
-  if (data.dayOfMonth !== undefined) updateData.dayOfMonth = data.dayOfMonth
-  if (data.customDates) updateData.customDates = data.customDates.length > 0 ? JSON.stringify(data.customDates) : null
-  if (data.isActive !== undefined) updateData.isActive = data.isActive
-  if (data.notes !== undefined) updateData.notes = data.notes
-
-  await db.update(recurringBills).set(updateData).where(eq(recurringBills.id, id))
+  await db.update(recurringBills).set({
+    ...data,
+    updatedAt: new Date(),
+  }).where(eq(recurringBills.id, id))
   revalidatePath('/dues')
 }
 

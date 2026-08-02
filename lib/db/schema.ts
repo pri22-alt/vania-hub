@@ -161,10 +161,7 @@ export const recurringBills = pgTable('recurring_bills', {
   description: text('description').notNull(),
   amount: decimal('amount', { precision: 12, scale: 2 }).notNull(),
   category: text('category').notNull(),
-  recurringType: varchar('recurring_type', { length: 50 }).notNull().default('monthly'), // monthly, weekly, biweekly, custom
-  startDate: date('start_date').notNull(), // First occurrence date
-  dayOfMonth: integer('dayofmonth'), // For monthly recurrence (1-31)
-  customDates: text('custom_dates'), // JSON array of specific dates for custom recurrence
+  dayOfMonth: integer('dayofmonth').notNull(),
   isActive: boolean('isactive').notNull().default(true),
   notes: text('notes'),
   createdAt: timestamp('createdat').notNull().defaultNow(),
