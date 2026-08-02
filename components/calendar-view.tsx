@@ -7,11 +7,7 @@ import { Card } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import type { CalendarEvent } from '@/app/actions/calendar'
 import moment from 'moment'
-import 'moment-timezone'
 import 'react-big-calendar/lib/css/react-big-calendar.css'
-
-// Set Malaysia timezone (UTC+8)
-moment.tz.setDefault('Asia/Kuala_Lumpur')
 
 const localizer = momentLocalizer(moment)
 
@@ -66,11 +62,10 @@ export function CalendarViewComponent({ events }: CalendarViewProps) {
 
   const filteredEvents = useMemo(
     () =>
-      events.filter(
-        (event) =>
-          event.start >= monthStart &&
-          event.start <= monthEnd,
-      ),
+      events.filter((event) => {
+        const s = new Date(event.start)
+        return s >= monthStart && s <= monthEnd
+      }),
     [events, monthStart, monthEnd],
   )
 
