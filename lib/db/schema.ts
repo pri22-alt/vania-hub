@@ -1,4 +1,4 @@
-import { pgTable, text, timestamp, boolean, serial, decimal, date, varchar } from 'drizzle-orm/pg-core'
+import { pgTable, text, timestamp, boolean, serial, decimal, date, varchar, integer } from 'drizzle-orm/pg-core'
 
 // --- Better Auth required tables -------------------------------------------
 // Column names are camelCase to match Better Auth's defaults. Do not rename.
@@ -148,6 +148,19 @@ export const budgetLimits = pgTable('budget_limits', {
   category: text('category').notNull(),
   monthYear: varchar('monthyear', { length: 10 }).notNull(),
   limitAmount: decimal('limitamount', { precision: 12, scale: 2 }).notNull(),
+  createdAt: timestamp('createdat').notNull().defaultNow(),
+  updatedAt: timestamp('updatedat').notNull().defaultNow(),
+})
+
+export const recurringBills = pgTable('recurring_bills', {
+  id: serial('id').primaryKey(),
+  userId: text('userid').notNull(),
+  description: text('description').notNull(),
+  amount: decimal('amount', { precision: 12, scale: 2 }).notNull(),
+  category: text('category').notNull(),
+  dayOfMonth: integer('dayofmonth').notNull(), // 1-31, day of month when bill is due
+  isActive: boolean('isactive').notNull().default(true),
+  notes: text('notes'),
   createdAt: timestamp('createdat').notNull().defaultNow(),
   updatedAt: timestamp('updatedat').notNull().defaultNow(),
 })
