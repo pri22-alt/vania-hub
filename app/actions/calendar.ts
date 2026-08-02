@@ -88,11 +88,12 @@ export async function getCalendarEvents(startDate: Date, endDate: Date): Promise
 
     // Process dues
     duesList.forEach((due: any) => {
+      const dateStr = typeof due.date === 'string' ? due.date : due.date?.toISOString().split('T')[0]
       events.push({
         id: `due-${due.id}`,
         title: `Bill: ${due.category || due.description}`,
-        start: new Date(`${due.date}T00:00:00`),
-        end: new Date(`${due.date}T23:59:59`),
+        start: new Date(`${dateStr}T00:00:00Z`),
+        end: new Date(`${dateStr}T23:59:59Z`),
         type: 'due',
         status: due.status,
         amount: due.amount?.toString(),
@@ -102,11 +103,12 @@ export async function getCalendarEvents(startDate: Date, endDate: Date): Promise
 
     // Process maid attendance
     maidList.forEach((maid: any) => {
+      const dateStr = typeof maid.date === 'string' ? maid.date : maid.date?.toISOString().split('T')[0]
       events.push({
         id: `maid-${maid.id}`,
         title: 'Maid Check-in',
-        start: maid.clockInTime ? new Date(maid.clockInTime) : new Date(`${maid.date}T00:00:00`),
-        end: maid.clockOutTime ? new Date(maid.clockOutTime) : new Date(`${maid.date}T23:59:59`),
+        start: maid.clockInTime ? new Date(maid.clockInTime) : new Date(`${dateStr}T00:00:00Z`),
+        end: maid.clockOutTime ? new Date(maid.clockOutTime) : new Date(`${dateStr}T23:59:59Z`),
         type: 'maid',
         description: maid.notes || 'Check-in',
       })
@@ -114,11 +116,12 @@ export async function getCalendarEvents(startDate: Date, endDate: Date): Promise
 
     // Process expenses
     expenseList.forEach((expense: any) => {
+      const dateStr = typeof expense.date === 'string' ? expense.date : expense.date?.toISOString().split('T')[0]
       events.push({
         id: `expense-${expense.id}`,
         title: `Expense: ${expense.category}`,
-        start: new Date(`${expense.date}T00:00:00`),
-        end: new Date(`${expense.date}T23:59:59`),
+        start: new Date(`${dateStr}T00:00:00Z`),
+        end: new Date(`${dateStr}T23:59:59Z`),
         type: 'expense',
         amount: expense.amount?.toString(),
         description: expense.description,
@@ -128,11 +131,12 @@ export async function getCalendarEvents(startDate: Date, endDate: Date): Promise
 
     // Process income
     incomeList.forEach((inc: any) => {
+      const dateStr = typeof inc.date === 'string' ? inc.date : inc.date?.toISOString().split('T')[0]
       events.push({
         id: `income-${inc.id}`,
         title: `Income: ${inc.category}`,
-        start: new Date(`${inc.date}T00:00:00`),
-        end: new Date(`${inc.date}T23:59:59`),
+        start: new Date(`${dateStr}T00:00:00Z`),
+        end: new Date(`${dateStr}T23:59:59Z`),
         type: 'income',
         amount: inc.amount?.toString(),
         description: inc.description,
@@ -158,11 +162,12 @@ export async function getCalendarEvents(startDate: Date, endDate: Date): Promise
         
         // Only include if within the date range
         if (eventDate >= startDate && eventDate <= endDate) {
+          const dateStr = eventDate.toISOString().split('T')[0]
           events.push({
             id: `recurring-${bill.id}-${year}-${month}-${billDay}`,
             title: `Bill: ${bill.category || bill.description}`,
-            start: new Date(`${eventDate.toISOString().split('T')[0]}T00:00:00`),
-            end: new Date(`${eventDate.toISOString().split('T')[0]}T23:59:59`),
+            start: new Date(`${dateStr}T00:00:00Z`),
+            end: new Date(`${dateStr}T23:59:59Z`),
             type: 'due',
             amount: bill.amount?.toString(),
             description: bill.description,
