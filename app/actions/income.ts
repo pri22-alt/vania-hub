@@ -22,6 +22,9 @@ export async function addIncome(data: {
   categoryType: string
   category: string
   subcategory?: string
+  customSubcategory?: string
+  clientId?: number
+  clientName?: string
   amount: string
   source: string
   remarks?: string
@@ -36,6 +39,9 @@ export async function addIncome(data: {
     categoryType: data.categoryType,
     category: data.category,
     subcategory: data.subcategory || null,
+    customSubcategory: data.customSubcategory || null,
+    clientId: data.clientId || null,
+    clientName: data.clientName || null,
     amount: data.amount,
     source: data.source,
     remarks: data.remarks || null,

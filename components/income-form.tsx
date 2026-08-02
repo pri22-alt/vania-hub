@@ -9,7 +9,8 @@ import { Card } from '@/components/ui/card'
 import { FileUpload } from '@/components/file-upload'
 
 const HOUSEHOLD_INCOME = ['Salary', 'Bonus', 'Interest', 'Other']
-const BUSINESS_INCOME = ['Virmanis United Sales', 'Consulting', 'Other']
+const BUSINESS_INCOME = ['Cheese Sales', 'Other']
+const CHEESE_SALES_TYPES = ['Cheese Sales', 'Others']
 
 export function IncomeForm() {
   const [formData, setFormData] = useState({
@@ -18,6 +19,8 @@ export function IncomeForm() {
     categoryType: 'household',
     category: 'Salary',
     subcategory: 'Salary',
+    customSubcategory: '',
+    clientName: '',
     amount: '',
     source: 'bank_transfer' as const,
     remarks: '',
@@ -43,6 +46,7 @@ export function IncomeForm() {
       await addIncome({
         ...formData,
         category: formData.categoryType === 'business' ? 'Virmanis United' : formData.category,
+        subcategory: formData.customSubcategory || formData.subcategory,
       })
       setSuccess(true)
       setFormData({
@@ -51,6 +55,8 @@ export function IncomeForm() {
         categoryType: 'household',
         category: 'Salary',
         subcategory: 'Salary',
+        customSubcategory: '',
+        clientName: '',
         amount: '',
         source: 'bank_transfer',
         remarks: '',
@@ -152,6 +158,36 @@ export function IncomeForm() {
             />
           </div>
         </div>
+
+        {/* Conditional: Custom Subcategory for "Other" */}
+        {formData.category === 'Other' && (
+          <div className="flex flex-col gap-2">
+            <Label htmlFor="customSubcategory">Please specify the subcategory</Label>
+            <Input
+              id="customSubcategory"
+              type="text"
+              placeholder="Enter custom subcategory"
+              value={formData.customSubcategory}
+              onChange={(e) => setFormData({ ...formData, customSubcategory: e.target.value })}
+              required
+            />
+          </div>
+        )}
+
+        {/* Conditional: Client Name for Cheese Sales */}
+        {formData.categoryType === 'business' && formData.category === 'Cheese Sales' && (
+          <div className="flex flex-col gap-2">
+            <Label htmlFor="clientName">Client Name</Label>
+            <Input
+              id="clientName"
+              type="text"
+              placeholder="Enter client name"
+              value={formData.clientName}
+              onChange={(e) => setFormData({ ...formData, clientName: e.target.value })}
+              required
+            />
+          </div>
+        )}
 
         {/* Source */}
         <div className="flex flex-col gap-2">

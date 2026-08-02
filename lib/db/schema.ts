@@ -90,6 +90,9 @@ export const income = pgTable('income', {
   categoryType: varchar('categorytype', { length: 20 }).notNull().default('household'), // 'household' or 'business'
   category: text('category').notNull().default('salary'),
   subcategory: text('subcategory'),
+  customSubcategory: text('customsubcategory'), // For "Other" subcategory custom text
+  clientId: integer('clientid'), // For Cheese Sales - links to virmanis_clients
+  clientName: text('clientname'), // Direct client name for Cheese Sales
   amount: decimal('amount', { precision: 12, scale: 2 }).notNull(),
   source: varchar('source', { length: 50 }),
   remarks: text('remarks'),
@@ -161,6 +164,24 @@ export const recurringBills = pgTable('recurring_bills', {
   dayOfMonth: integer('dayofmonth').notNull(), // 1-31, day of month when bill is due
   isActive: boolean('isactive').notNull().default(true),
   notes: text('notes'),
+  createdAt: timestamp('createdat').notNull().defaultNow(),
+  updatedAt: timestamp('updatedat').notNull().defaultNow(),
+})
+
+export const virmaisClients = pgTable('virmanis_clients', {
+  id: serial('id').primaryKey(),
+  userId: text('userid').notNull(),
+  clientName: text('clientname').notNull(),
+  contactPerson: text('contactperson'),
+  email: text('email'),
+  phone: text('phone'),
+  address: text('address'),
+  city: text('city'),
+  purchaseFrequency: varchar('purchasefrequency', { length: 50 }), // e.g., "Weekly", "Bi-weekly", "Monthly"
+  totalSpent: decimal('totalspent', { precision: 12, scale: 2 }).notNull().default('0'),
+  lastPurchaseDate: date('lastpurchasedate'),
+  notes: text('notes'),
+  isActive: boolean('isactive').notNull().default(true),
   createdAt: timestamp('createdat').notNull().defaultNow(),
   updatedAt: timestamp('updatedat').notNull().defaultNow(),
 })
