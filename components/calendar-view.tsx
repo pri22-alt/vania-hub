@@ -7,6 +7,7 @@ import { Card } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import type { CalendarEvent } from '@/app/actions/calendar'
 import moment from 'moment'
+import 'moment-timezone'
 import 'react-big-calendar/lib/css/react-big-calendar.css'
 
 // Set Malaysia timezone (UTC+8)
