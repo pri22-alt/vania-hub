@@ -14,9 +14,17 @@ interface MonthlySavings {
   savingsPercentage: number
 }
 
-// In-memory savings goals and records
+// In-memory savings goals and detailed records
+interface SavingsRecord {
+  id: string
+  amount: number
+  date: string
+  location: 'cash' | 'bank'
+  notes?: string
+}
+
 const savingsGoals: { [month: string]: number } = {}
-const savingsRecords: { [month: string]: number } = {}
+const savingsRecords: { [month: string]: SavingsRecord[] } = {}
 
 export async function calculateMonthlySavings(): Promise<MonthlySavings[]> {
   const allIncome = await getIncome()
@@ -48,7 +56,8 @@ export async function calculateMonthlySavings(): Promise<MonthlySavings[]> {
     .map(([month, data]) => {
       const netIncome = data.income - data.expenses
       const goal = savingsGoals[month] || Math.max(netIncome * 0.1, 0) // Default 10% or actual surplus
-      const saved = savingsRecords[month] || 0
+      const records = savingsRecords[month] || []
+      const saved = records.reduce((sum, r) => sum + r.amount, 0)
 
       return {
         month,
@@ -58,6 +67,7 @@ export async function calculateMonthlySavings(): Promise<MonthlySavings[]> {
         savingsGoal: goal,
         savingsAmount: saved,
         savingsPercentage: data.income > 0 ? (saved / data.income) * 100 : 0,
+        records,
       }
     })
 
@@ -68,14 +78,31 @@ export async function setSavingsGoal(month: string, amount: number) {
   savingsGoals[month] = amount
 }
 
-export async function recordSavings(month: string, amount: number) {
-  savingsRecords[month] = amount
+export async function recordSavings(month: string, amount: number, date: string, location: 'cash' | 'bank', notes?: string) {
+  if (!savingsRecords[month]) {
+    savingsRecords[month] = []
+  }
+  
+  const record: SavingsRecord = {
+    id: `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+    amount,
+    date,
+    location,
+    notes,
+  }
+  
+  savingsRecords[month].push(record)
+  return record
+}
+
+export async function getSavingsRecords(month: string): Promise<SavingsRecord[]> {
+  return savingsRecords[month] || []
 }
 
 export async function getSavingsOverview() {
   const monthlySavings = await calculateMonthlySavings()
   
-  const totalSavings = Object.values(savingsRecords).reduce((sum, amt) => sum + amt, 0)
+  const totalSavings = monthlySavings.reduce((sum, m) => sum + m.savingsAmount, 0)
   const totalGoals = Object.values(savingsGoals).reduce((sum, amt) => sum + amt, 0)
   const averageSavingsRate =
     monthlySavings.length > 0
