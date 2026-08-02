@@ -21,8 +21,23 @@ export async function addDue(data: {
   description: string
   amount: string
   category?: string
+  isRecurring?: boolean
   notes?: string
 }) {
+  // If recurring, also add to recurring bills
+  if (data.isRecurring) {
+    const { addRecurringBill } = await import('./recurring-bills')
+    const dateObj = new Date(data.date)
+    await addRecurringBill({
+      description: data.description,
+      amount: data.amount,
+      category: data.category || 'Other',
+      dayOfMonth: dateObj.getDate(),
+      notes: data.notes,
+    })
+  }
+
+  // Add the due date entry
   await db.insert(dues).values({
     userId: SHARED_USER_ID,
     date: data.date,

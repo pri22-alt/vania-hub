@@ -12,18 +12,22 @@ export async function getRecurringBills() {
 }
 
 export async function addRecurringBill(data: {
+  date?: string
   description: string
   amount: string
   category: string
-  dayOfMonth: number
+  dayOfMonth?: number
   notes?: string
 }) {
+  // Use provided dayOfMonth or extract from date
+  const dayOfMonth = data.dayOfMonth || (data.date ? new Date(data.date).getDate() : new Date().getDate())
+  
   await db.insert(recurringBills).values({
     userId: SHARED_USER_ID,
     description: data.description,
     amount: data.amount,
     category: data.category,
-    dayOfMonth: data.dayOfMonth,
+    dayOfMonth: dayOfMonth,
     notes: data.notes || null,
     isActive: true,
   })

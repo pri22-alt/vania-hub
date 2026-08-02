@@ -18,11 +18,13 @@ const CATEGORIES = [
 ]
 
 export function RecurringBillsForm() {
+  const today = new Date()
   const [formData, setFormData] = useState({
+    date: today.toISOString().split('T')[0],
     description: '',
     amount: '',
     category: 'Other',
-    dayOfMonth: new Date().getDate(),
+    dayOfMonth: today.getDate(),
     notes: '',
   })
   const [loading, setLoading] = useState(false)
@@ -44,11 +46,13 @@ export function RecurringBillsForm() {
 
       await addRecurringBill(formData)
       setSuccess(true)
+      const today = new Date()
       setFormData({
+        date: today.toISOString().split('T')[0],
         description: '',
         amount: '',
         category: 'Other',
-        dayOfMonth: new Date().getDate(),
+        dayOfMonth: today.getDate(),
         notes: '',
       })
       setTimeout(() => setSuccess(false), 3000)
@@ -63,10 +67,33 @@ export function RecurringBillsForm() {
     <Card className="p-4 sm:p-6">
       <div className="mb-4">
         <h3 className="text-lg font-semibold text-foreground">Add Recurring Bill</h3>
-        <p className="text-xs text-muted-foreground mt-1">Set up bills that repeat automatically</p>
+        <p className="text-xs text-muted-foreground mt-1">Bills that repeat on the same day each month</p>
       </div>
 
       <form onSubmit={handleSubmit} className="flex flex-col gap-4">
+        {/* Start Date */}
+        <div className="flex flex-col gap-2">
+          <Label htmlFor="date">Start Date (M/D/YYYY) *</Label>
+          <Input
+            id="date"
+            type="date"
+            value={formData.date}
+            onChange={(e) => {
+              const selectedDate = new Date(e.target.value)
+              setFormData({
+                ...formData,
+                date: e.target.value,
+                dayOfMonth: selectedDate.getDate(),
+              })
+            }}
+            required
+            disabled={loading}
+          />
+          <p className="text-xs text-muted-foreground">
+            This bill will repeat on day <strong>{formData.dayOfMonth}</strong> of every month
+          </p>
+        </div>
+
         {/* Description */}
         <div className="flex flex-col gap-2">
           <Label htmlFor="description">Bill Name *</Label>
@@ -92,24 +119,6 @@ export function RecurringBillsForm() {
             onChange={(e) => setFormData({ ...formData, amount: e.target.value })}
             disabled={loading}
           />
-        </div>
-
-        {/* Day of Month */}
-        <div className="flex flex-col gap-2">
-          <Label htmlFor="dayOfMonth">Due Day of Month *</Label>
-          <select
-            id="dayOfMonth"
-            value={formData.dayOfMonth}
-            onChange={(e) => setFormData({ ...formData, dayOfMonth: parseInt(e.target.value) })}
-            disabled={loading}
-            className="border border-input rounded-md px-3 py-2 text-sm bg-background"
-          >
-            {Array.from({ length: 31 }, (_, i) => i + 1).map(day => (
-              <option key={day} value={day}>
-                Day {day}
-              </option>
-            ))}
-          </select>
         </div>
 
         {/* Category */}

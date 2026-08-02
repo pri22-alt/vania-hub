@@ -23,6 +23,7 @@ export function DuesForm() {
     description: '',
     amount: '',
     category: 'Other',
+    isRecurring: false,
     notes: '',
   })
   const [loading, setLoading] = useState(false)
@@ -43,6 +44,7 @@ export function DuesForm() {
         description: '',
         amount: '',
         category: 'Other',
+        isRecurring: false,
         notes: '',
       })
       setTimeout(() => setSuccess(false), 3000)
@@ -102,7 +104,7 @@ export function DuesForm() {
 
         {/* Amount */}
         <div className="flex flex-col gap-2">
-          <Label htmlFor="amount">Amount</Label>
+          <Label htmlFor="amount">Amount (RM) *</Label>
           <Input
             id="amount"
             type="number"
@@ -112,6 +114,20 @@ export function DuesForm() {
             onChange={(e) => setFormData({ ...formData, amount: e.target.value })}
             required
           />
+        </div>
+
+        {/* Recurring */}
+        <div className="flex items-center gap-3">
+          <input
+            id="isRecurring"
+            type="checkbox"
+            checked={formData.isRecurring}
+            onChange={(e) => setFormData({ ...formData, isRecurring: e.target.checked })}
+            className="w-4 h-4 cursor-pointer"
+          />
+          <Label htmlFor="isRecurring" className="cursor-pointer">
+            This is a recurring bill (repeats monthly)
+          </Label>
         </div>
 
         {/* Notes */}
