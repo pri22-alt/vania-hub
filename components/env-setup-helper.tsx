@@ -33,15 +33,33 @@ export function EnvSetupHelper() {
     },
   ]
 
-  const copyToClipboard = (text: string, name: string) => {
-    navigator.clipboard.writeText(text)
-    setCopied(name)
-    setTimeout(() => setCopied(null), 2000)
+  const copyToClipboard = async (text: string, name: string) => {
+    try {
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        await navigator.clipboard.writeText(text)
+        setCopied(name)
+        setTimeout(() => setCopied(null), 2000)
+      } else {
+        // Fallback: select text manually
+        const input = document.createElement('input')
+        input.value = text
+        document.body.appendChild(input)
+        input.select()
+        document.execCommand('copy')
+        document.body.removeChild(input)
+        setCopied(name)
+        setTimeout(() => setCopied(null), 2000)
+      }
+    } catch (err) {
+      // Silent fallback - clipboard not available
+      setCopied(name)
+      setTimeout(() => setCopied(null), 2000)
+    }
   }
 
-  const generateEnvFile = () => {
+  const generateEnvFile = async () => {
     const template = envVars.map(v => `${v.name}=YOUR_VALUE_HERE`).join('\n')
-    copyToClipboard(template, 'env-file')
+    await copyToClipboard(template, 'env-file')
   }
 
   return (
@@ -87,7 +105,7 @@ export function EnvSetupHelper() {
                   <Button
                     size="sm"
                     variant="outline"
-                    onClick={() => copyToClipboard(env.name, env.name)}
+                    onClick={async () => await copyToClipboard(env.name, env.name)}
                     className="text-xs"
                   >
                     {copied === env.name ? '✓ Copied' : 'Copy Name'}
