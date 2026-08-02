@@ -4,7 +4,7 @@ import { db } from '@/lib/db'
 import { dues, maidAttendance, expenses, income } from '@/lib/db/schema'
 import { sql } from 'drizzle-orm'
 
-const SHARED_USER_ID = 'shared-user'
+const SHARED_USER_ID = 'family-hub'
 
 export interface CalendarEvent {
   id: string
