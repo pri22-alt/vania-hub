@@ -162,3 +162,58 @@
     @apply bg-background text-foreground;
   }
 }
+
+/* React Big Calendar Styles */
+.rbc-calendar {
+  font-family: inherit;
+}
+
+.rbc-header {
+  padding: 10px 4px;
+  font-weight: 600;
+  font-size: 12px;
+  color: var(--foreground);
+  border-bottom: 2px solid var(--border);
+  background-color: var(--muted);
+}
+
+.rbc-today {
+  background-color: rgba(120, 200, 255, 0.05);
+}
+
+.rbc-off-range-bg {
+  background-color: var(--muted);
+}
+
+.rbc-event {
+  padding: 2px 4px;
+}
+
+.rbc-event-label {
+  font-size: 11px;
+}
+
+.rbc-toolbar {
+  display: none;
+}
+
+.rbc-month-view {
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  overflow: hidden;
+}
+
+.rbc-date-cell {
+  padding: 2px 4px;
+  text-align: right;
+  font-size: 12px;
+}
+
+.rbc-day-bg,
+.rbc-date-cell {
+  background-color: var(--card);
+}
+
+.rbc-day-bg:hover {
+  background-color: var(--muted);
+}
