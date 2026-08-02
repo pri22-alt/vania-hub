@@ -26,6 +26,8 @@ export async function addIncome(data: {
   source: string
   remarks?: string
   notes?: string
+  driveFileId?: string
+  driveFileUrl?: string
 }) {
   await db.insert(income).values({
     userId: SHARED_USER_ID,
@@ -38,6 +40,8 @@ export async function addIncome(data: {
     source: data.source,
     remarks: data.remarks || null,
     notes: data.notes || null,
+    driveFileId: data.driveFileId || null,
+    driveFileUrl: data.driveFileUrl || null,
   })
   revalidatePath('/income')
 }

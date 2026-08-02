@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Card } from '@/components/ui/card'
+import { FileUpload } from '@/components/file-upload'
 
 const HOUSEHOLD_INCOME = ['Salary', 'Bonus', 'Interest', 'Other']
 const BUSINESS_INCOME = ['Virmanis United Sales', 'Consulting', 'Other']
@@ -21,6 +22,8 @@ export function IncomeForm() {
     source: 'bank_transfer' as const,
     remarks: '',
     notes: '',
+    driveFileId: '',
+    driveFileUrl: '',
   })
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -52,6 +55,8 @@ export function IncomeForm() {
         source: 'bank_transfer',
         remarks: '',
         notes: '',
+        driveFileId: '',
+        driveFileUrl: '',
       })
       setTimeout(() => setSuccess(false), 3000)
     } catch (err) {
@@ -185,6 +190,21 @@ export function IncomeForm() {
             onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
             className="border border-input rounded-md px-3 py-2 text-sm resize-none"
             rows={2}
+          />
+        </div>
+
+        {/* Receipt Upload */}
+        <div className="flex flex-col gap-2">
+          <Label>Receipt Photo/Document (Optional)</Label>
+          <FileUpload
+            onFileSelect={(file, url, fileId) => {
+              setFormData({
+                ...formData,
+                driveFileUrl: url || '',
+                driveFileId: fileId || '',
+              })
+            }}
+            disabled={loading}
           />
         </div>
 

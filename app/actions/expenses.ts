@@ -27,6 +27,8 @@ export async function addExpense(data: {
   googleFormsLink?: string
   remarks?: string
   notes?: string
+  driveFileId?: string
+  driveFileUrl?: string
 }) {
   await db.insert(expenses).values({
     userId: SHARED_USER_ID,
@@ -40,6 +42,8 @@ export async function addExpense(data: {
     googleFormsLink: data.googleFormsLink || null,
     remarks: data.remarks || null,
     notes: data.notes || null,
+    driveFileId: data.driveFileId || null,
+    driveFileUrl: data.driveFileUrl || null,
   })
   revalidatePath('/expenses')
 }

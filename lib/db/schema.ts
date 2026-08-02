@@ -76,6 +76,8 @@ export const expenses = pgTable('expenses', {
   googleFormsLink: text('googleformslink'),
   remarks: text('remarks'),
   notes: text('notes'),
+  driveFileId: text('drivefileid'), // Google Drive file ID
+  driveFileUrl: text('drivefileurl'), // Google Drive file link
   createdAt: timestamp('createdat').notNull().defaultNow(),
   updatedAt: timestamp('updatedat').notNull().defaultNow(),
 })
@@ -92,6 +94,8 @@ export const income = pgTable('income', {
   source: varchar('source', { length: 50 }),
   remarks: text('remarks'),
   notes: text('notes'),
+  driveFileId: text('drivefileid'), // Google Drive file ID
+  driveFileUrl: text('drivefileurl'), // Google Drive file link
   createdAt: timestamp('createdat').notNull().defaultNow(),
   updatedAt: timestamp('updatedat').notNull().defaultNow(),
 })
