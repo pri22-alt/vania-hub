@@ -114,8 +114,6 @@ export async function getAllBudgetsStatus() {
     }
   })
 }
-  })
-}
 
 export async function getBudgetsByCategory(categoryType: string) {
   return DEFAULT_BUDGETS.filter(b => b.categoryType === categoryType)
