@@ -2,11 +2,7 @@
 
 import { getExpenses } from './expenses'
 import { formatRM } from '@/lib/utils/currency'
-
-// In-memory budget storage (in production, would use a database)
-// For now, we'll use predefined budget templates
-// In-memory budget adjustments per month (carry-forward and extra funds)
-const budgetAdjustments: { [key: string]: { carryForward: number; extraFunds: number } } = {}
+import { budgetAdjustments, updateBudgetAdjustmentSync, getBudgetAdjustment } from '@/lib/utils/budget-utils'
 
 const DEFAULT_BUDGETS = [
   {
@@ -62,13 +58,7 @@ const DEFAULT_BUDGETS = [
 ]
 
 export async function updateBudgetAdjustment(budgetId: number, month: string, carryForward: number, extraFunds: number) {
-  const key = `${budgetId}-${month}`
-  budgetAdjustments[key] = { carryForward, extraFunds }
-}
-
-export function getBudgetAdjustment(budgetId: number, month: string) {
-  const key = `${budgetId}-${month}`
-  return budgetAdjustments[key] || { carryForward: 0, extraFunds: 0 }
+  updateBudgetAdjustmentSync(budgetId, month, carryForward, extraFunds)
 }
 
 export async function getBudgets() {

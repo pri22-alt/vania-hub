@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { formatRM } from '@/lib/utils/currency'
 import { updateBudgetAdjustment } from '@/app/actions/budgets'
+import { getBudgetAdjustment } from '@/lib/utils/budget-utils'
 
 export function BudgetList({ budgets }: any) {
   const [expandedId, setExpandedId] = useState<number | null>(null)
