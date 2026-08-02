@@ -9,7 +9,7 @@ import { Card } from '@/components/ui/card'
 import { FileUpload } from '@/components/file-upload'
 
 const HOUSEHOLD_INCOME = ['Salary', 'Bonus', 'Interest', 'Other']
-const BUSINESS_INCOME = ['Cheese Sales', 'Other']
+const BUSINESS_INCOME = ['Investment', 'Cheese Sales', 'Other']
 const CHEESE_SALES_TYPES = ['Cheese Sales', 'Others']
 
 export function IncomeForm() {
