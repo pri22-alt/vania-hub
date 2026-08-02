@@ -22,10 +22,7 @@ export function RecurringBillsForm() {
     description: '',
     amount: '',
     category: 'Other',
-    recurringType: 'monthly',
-    startDate: new Date().toISOString().split('T')[0],
     dayOfMonth: new Date().getDate(),
-    customDates: [] as string[],
     notes: '',
   })
   const [loading, setLoading] = useState(false)
@@ -51,10 +48,7 @@ export function RecurringBillsForm() {
         description: '',
         amount: '',
         category: 'Other',
-        recurringType: 'monthly',
-        startDate: new Date().toISOString().split('T')[0],
         dayOfMonth: new Date().getDate(),
-        customDates: [],
         notes: '',
       })
       setTimeout(() => setSuccess(false), 3000)
@@ -100,55 +94,23 @@ export function RecurringBillsForm() {
           />
         </div>
 
-        {/* Start Date */}
+        {/* Day of Month */}
         <div className="flex flex-col gap-2">
-          <Label htmlFor="startDate">Start Date *</Label>
-          <Input
-            id="startDate"
-            type="date"
-            value={formData.startDate}
-            onChange={(e) => setFormData({ ...formData, startDate: e.target.value })}
-            disabled={loading}
-            required
-          />
-        </div>
-
-        {/* Recurring Type */}
-        <div className="flex flex-col gap-2">
-          <Label htmlFor="recurringType">Repeats *</Label>
+          <Label htmlFor="dayOfMonth">Due Day of Month *</Label>
           <select
-            id="recurringType"
-            value={formData.recurringType}
-            onChange={(e) => setFormData({ ...formData, recurringType: e.target.value })}
+            id="dayOfMonth"
+            value={formData.dayOfMonth}
+            onChange={(e) => setFormData({ ...formData, dayOfMonth: parseInt(e.target.value) })}
             disabled={loading}
             className="border border-input rounded-md px-3 py-2 text-sm bg-background"
           >
-            <option value="monthly">Monthly</option>
-            <option value="weekly">Weekly</option>
-            <option value="biweekly">Biweekly</option>
-            <option value="custom">Custom Dates</option>
+            {Array.from({ length: 31 }, (_, i) => i + 1).map(day => (
+              <option key={day} value={day}>
+                Day {day}
+              </option>
+            ))}
           </select>
         </div>
-
-        {/* Day of Month (for monthly recurrence) */}
-        {formData.recurringType === 'monthly' && (
-          <div className="flex flex-col gap-2">
-            <Label htmlFor="dayOfMonth">Due Day of Month</Label>
-            <select
-              id="dayOfMonth"
-              value={formData.dayOfMonth}
-              onChange={(e) => setFormData({ ...formData, dayOfMonth: parseInt(e.target.value) })}
-              disabled={loading}
-              className="border border-input rounded-md px-3 py-2 text-sm bg-background"
-            >
-              {Array.from({ length: 31 }, (_, i) => i + 1).map(day => (
-                <option key={day} value={day}>
-                  Day {day}
-                </option>
-              ))}
-            </select>
-          </div>
-        )}
 
         {/* Category */}
         <div className="flex flex-col gap-2">
