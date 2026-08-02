@@ -4,6 +4,7 @@ import { getDues } from '@/app/actions/dues'
 import { getRecurringBills } from '@/app/actions/recurring-bills'
 import { DuesForm } from '@/components/dues-form'
 import { DuesList } from '@/components/dues-list'
+import { DuesExportButton } from '@/components/dues-export-button'
 import { RecurringBillsForm } from '@/components/recurring-bills-form'
 import { RecurringBillsList } from '@/components/recurring-bills-list'
 import { formatRM } from '@/lib/utils/currency'
@@ -22,7 +23,10 @@ export default async function DuesPage() {
   return (
     <div className="p-6 md:p-8 max-w-5xl mx-auto">
       <div className="mb-8">
-        <h2 className="text-2xl font-bold text-foreground">Dues & Bills</h2>
+        <div className="flex items-center justify-between mb-3">
+          <h2 className="text-2xl font-bold text-foreground">Dues & Bills</h2>
+          <DuesExportButton dues={duesList} />
+        </div>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-3">
           <div>
             <p className="text-xs text-muted-foreground">One-time bills pending</p>
