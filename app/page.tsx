@@ -24,60 +24,65 @@ export default async function DashboardPage() {
   const net = overview.totalIncome + overview.totalSales - overview.totalExpenses
 
   return (
-    <div className="p-6 md:p-8 max-w-4xl mx-auto">
-      <div className="mb-8">
-        <h2 className="text-2xl font-bold text-foreground">Dashboard</h2>
-        <p className="text-muted-foreground mt-1 text-sm">
-          {new Date().toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })}
-        </p>
-      </div>
-
-      {/* Stats */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-8">
-        <div className="bg-card border border-border rounded-xl p-4">
-          <p className="text-xs text-muted-foreground mb-1">This Month Income</p>
-          <p className="text-lg font-bold text-emerald-600">{formatRM(overview.totalIncome)}</p>
-        </div>
-        <div className="bg-card border border-border rounded-xl p-4">
-          <p className="text-xs text-muted-foreground mb-1">This Month Expenses</p>
-          <p className="text-lg font-bold text-rose-600">{formatRM(overview.totalExpenses)}</p>
-        </div>
-        <div className="bg-card border border-border rounded-xl p-4">
-          <p className="text-xs text-muted-foreground mb-1">Cheese Sales</p>
-          <p className="text-lg font-bold text-orange-600">{formatRM(overview.totalSales)}</p>
-        </div>
-        <div className="bg-card border border-border rounded-xl p-4">
-          <p className="text-xs text-muted-foreground mb-1">Net Balance</p>
-          <p className={`text-lg font-bold ${net >= 0 ? 'text-emerald-600' : 'text-rose-600'}`}>{formatRM(net)}</p>
+    <div className="w-full min-h-screen bg-background pb-24 md:pb-8">
+      {/* Header */}
+      <div className="sticky top-0 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 border-b border-border z-40">
+        <div className="p-4 md:p-8 max-w-6xl mx-auto">
+          <h2 className="text-2xl md:text-3xl font-bold text-foreground">Dashboard</h2>
+          <p className="text-muted-foreground mt-1 text-xs md:text-sm">
+            {new Date().toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })}
+          </p>
         </div>
       </div>
 
-      {/* Nav Cards */}
-      <div className="grid grid-cols-2 md:grid-cols-3 gap-3 mb-6">
-        {navCards.map((card) => (
-          <Link key={card.href} href={card.href}
-            className={`rounded-xl border p-4 ${card.color} hover:shadow-md transition-all hover:-translate-y-0.5`}>
-            <p className={`font-semibold text-sm ${card.text}`}>{card.label}</p>
-            <p className="text-xs text-muted-foreground mt-0.5">{card.desc}</p>
-          </Link>
-        ))}
-      </div>
-
-      {/* Pending Dues */}
-      {pending.length > 0 && (
-        <div className="bg-amber-50 border border-amber-200 rounded-xl p-4">
-          <div className="flex items-center justify-between mb-3">
-            <p className="font-semibold text-amber-800 text-sm">{pending.length} Pending Due{pending.length > 1 ? 's' : ''}</p>
-            <Link href="/dues" className="text-xs text-amber-600 hover:underline">View all</Link>
+      {/* Main Content */}
+      <div className="p-4 md:p-8 max-w-6xl mx-auto">
+        {/* Stats Grid - Responsive */}
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-2 md:gap-4 mb-6 md:mb-8">
+          <div className="bg-gradient-to-br from-emerald-50 to-emerald-100 dark:from-emerald-950 dark:to-emerald-900 border border-emerald-200 dark:border-emerald-800 rounded-lg md:rounded-xl p-3 md:p-4">
+            <p className="text-xs md:text-sm text-emerald-700 dark:text-emerald-300 font-medium">Income</p>
+            <p className="text-base md:text-lg font-bold text-emerald-600 dark:text-emerald-400 mt-1">{formatRM(overview.totalIncome)}</p>
           </div>
-          <div className="flex flex-col gap-2">
-            {pending.slice(0, 4).map(due => (
-              <div key={due.id} className="flex items-center justify-between text-sm">
-                <span className="text-amber-700 truncate">{due.description}</span>
-                <span className="font-semibold text-amber-800 ml-2 shrink-0">{formatRM(Number(due.amount))}</span>
-              </div>
-            ))}
+          <div className="bg-gradient-to-br from-rose-50 to-rose-100 dark:from-rose-950 dark:to-rose-900 border border-rose-200 dark:border-rose-800 rounded-lg md:rounded-xl p-3 md:p-4">
+            <p className="text-xs md:text-sm text-rose-700 dark:text-rose-300 font-medium">Expenses</p>
+            <p className="text-base md:text-lg font-bold text-rose-600 dark:text-rose-400 mt-1">{formatRM(overview.totalExpenses)}</p>
           </div>
+          <div className="bg-gradient-to-br from-orange-50 to-orange-100 dark:from-orange-950 dark:to-orange-900 border border-orange-200 dark:border-orange-800 rounded-lg md:rounded-xl p-3 md:p-4">
+            <p className="text-xs md:text-sm text-orange-700 dark:text-orange-300 font-medium">Cheese Sales</p>
+            <p className="text-base md:text-lg font-bold text-orange-600 dark:text-orange-400 mt-1">{formatRM(overview.totalSales)}</p>
+          </div>
+          <div className={`bg-gradient-to-br ${net >= 0 ? 'from-blue-50 to-blue-100 dark:from-blue-950 dark:to-blue-900 border-blue-200 dark:border-blue-800' : 'from-amber-50 to-amber-100 dark:from-amber-950 dark:to-amber-900 border-amber-200 dark:border-amber-800'} border rounded-lg md:rounded-xl p-3 md:p-4`}>
+            <p className={`text-xs md:text-sm font-medium ${net >= 0 ? 'text-blue-700 dark:text-blue-300' : 'text-amber-700 dark:text-amber-300'}`}>Net Balance</p>
+            <p className={`text-base md:text-lg font-bold mt-1 ${net >= 0 ? 'text-blue-600 dark:text-blue-400' : 'text-amber-600 dark:text-amber-400'}`}>{formatRM(net)}</p>
+          </div>
+        </div>
+
+        {/* Navigation Cards - Full width on mobile, 3 columns on desktop */}
+        <div className="grid grid-cols-2 md:grid-cols-3 gap-2 md:gap-4 mb-6 md:mb-8">
+          {navCards.map((card) => (
+            <Link key={card.href} href={card.href}
+              className={`rounded-lg md:rounded-xl border p-3 md:p-4 ${card.color} hover:shadow-md transition-all hover:-translate-y-1 active:translate-y-0`}>
+              <p className={`font-semibold text-xs md:text-sm ${card.text}`}>{card.label}</p>
+              <p className="text-xs text-muted-foreground mt-1">{card.desc}</p>
+            </Link>
+          ))}
+        </div>
+
+        {/* Pending Dues Alert */}
+        {pending.length > 0 && (
+          <div className="bg-amber-50 dark:bg-amber-950 border border-amber-200 dark:border-amber-800 rounded-lg md:rounded-xl p-4 md:p-6">
+            <div className="flex items-center justify-between mb-3 md:mb-4">
+              <p className="font-semibold text-amber-800 dark:text-amber-200 text-sm md:text-base">{pending.length} Pending Due{pending.length > 1 ? 's' : ''}</p>
+              <Link href="/dues" className="text-xs md:text-sm text-amber-600 dark:text-amber-400 hover:underline font-medium">View all</Link>
+            </div>
+            <div className="flex flex-col gap-2 md:gap-3">
+              {pending.slice(0, 4).map(due => (
+                <div key={due.id} className="flex items-center justify-between text-xs md:text-sm">
+                  <span className="text-amber-700 dark:text-amber-300 truncate">{due.description}</span>
+                  <span className="font-semibold text-amber-800 dark:text-amber-200 ml-2 shrink-0">{formatRM(Number(due.amount))}</span>
+                </div>
+              ))}
+            </div>
           {pending.length > 4 && (
             <p className="text-xs text-amber-600 mt-2">+{pending.length - 4} more</p>
           )}

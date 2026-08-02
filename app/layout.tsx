@@ -20,11 +20,17 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="en" className="bg-background">
       <body className={`${inter.className} antialiased`}>
-        <div className="flex min-h-screen">
+        <div className="flex flex-col md:flex-row min-h-screen bg-background">
+          {/* Navigation */}
           <NavSidebar />
-          <main className="flex-1 overflow-y-auto">
+          
+          {/* Main Content - Adjusts based on viewport */}
+          <main className="flex-1 overflow-y-auto overflow-x-hidden md:ml-56 w-full">
             {children}
           </main>
+
+          {/* Mobile bottom nav safe area padding */}
+          <div className="md:hidden h-24" />
         </div>
         <Toaster />
       </body>
