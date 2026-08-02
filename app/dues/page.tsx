@@ -3,10 +3,7 @@ export const dynamic = 'force-dynamic'
 import { getDues } from '@/app/actions/dues'
 import { DuesForm } from '@/components/dues-form'
 import { DuesList } from '@/components/dues-list'
-
-function formatCurrency(n: number) {
-  return new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 }).format(n)
-}
+import { formatRM } from '@/lib/utils/currency'
 
 export default async function DuesPage() {
   const duesList = await getDues()
@@ -18,7 +15,7 @@ export default async function DuesPage() {
       <div className="mb-6">
         <h2 className="text-2xl font-bold text-foreground">Dues & Bills</h2>
         <p className="text-muted-foreground text-sm mt-1">
-          {pending.length} pending &mdash; Total owed: <span className="font-semibold text-amber-600">{formatCurrency(pendingTotal)}</span>
+          {pending.length} pending &mdash; Total owed: <span className="font-semibold text-amber-600">{formatRM(pendingTotal)}</span>
         </p>
       </div>
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">

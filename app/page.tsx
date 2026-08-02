@@ -3,10 +3,7 @@ export const dynamic = 'force-dynamic'
 import Link from 'next/link'
 import { getFinancialOverview } from '@/app/actions/analytics'
 import { getDues } from '@/app/actions/dues'
-
-function formatCurrency(amount: number) {
-  return new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 }).format(amount)
-}
+import { formatRM } from '@/lib/utils/currency'
 
 const navCards = [
   { href: '/expenses', label: 'Expenses', desc: 'Track daily spending', color: 'bg-rose-50 border-rose-200', text: 'text-rose-700' },
@@ -39,19 +36,19 @@ export default async function DashboardPage() {
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-8">
         <div className="bg-card border border-border rounded-xl p-4">
           <p className="text-xs text-muted-foreground mb-1">This Month Income</p>
-          <p className="text-lg font-bold text-emerald-600">{formatCurrency(overview.totalIncome)}</p>
+          <p className="text-lg font-bold text-emerald-600">{formatRM(overview.totalIncome)}</p>
         </div>
         <div className="bg-card border border-border rounded-xl p-4">
           <p className="text-xs text-muted-foreground mb-1">This Month Expenses</p>
-          <p className="text-lg font-bold text-rose-600">{formatCurrency(overview.totalExpenses)}</p>
+          <p className="text-lg font-bold text-rose-600">{formatRM(overview.totalExpenses)}</p>
         </div>
         <div className="bg-card border border-border rounded-xl p-4">
           <p className="text-xs text-muted-foreground mb-1">Cheese Sales</p>
-          <p className="text-lg font-bold text-orange-600">{formatCurrency(overview.totalSales)}</p>
+          <p className="text-lg font-bold text-orange-600">{formatRM(overview.totalSales)}</p>
         </div>
         <div className="bg-card border border-border rounded-xl p-4">
           <p className="text-xs text-muted-foreground mb-1">Net Balance</p>
-          <p className={`text-lg font-bold ${net >= 0 ? 'text-emerald-600' : 'text-rose-600'}`}>{formatCurrency(net)}</p>
+          <p className={`text-lg font-bold ${net >= 0 ? 'text-emerald-600' : 'text-rose-600'}`}>{formatRM(net)}</p>
         </div>
       </div>
 
@@ -77,7 +74,7 @@ export default async function DashboardPage() {
             {pending.slice(0, 4).map(due => (
               <div key={due.id} className="flex items-center justify-between text-sm">
                 <span className="text-amber-700 truncate">{due.description}</span>
-                <span className="font-semibold text-amber-800 ml-2 shrink-0">{formatCurrency(Number(due.amount))}</span>
+                <span className="font-semibold text-amber-800 ml-2 shrink-0">{formatRM(Number(due.amount))}</span>
               </div>
             ))}
           </div>

@@ -3,10 +3,7 @@ export const dynamic = 'force-dynamic'
 import { getExpenses } from '@/app/actions/expenses'
 import { ExpenseForm } from '@/components/expense-form'
 import { ExpenseList } from '@/components/expense-list'
-
-function formatCurrency(n: number) {
-  return new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 }).format(n)
-}
+import { formatRM } from '@/lib/utils/currency'
 
 export default async function ExpensesPage() {
   const expenseList = await getExpenses()
@@ -17,7 +14,7 @@ export default async function ExpensesPage() {
       <div className="mb-6">
         <h2 className="text-2xl font-bold text-foreground">Expenses</h2>
         <p className="text-muted-foreground text-sm mt-1">
-          {expenseList.length} records &mdash; Total: <span className="font-semibold text-rose-600">{formatCurrency(total)}</span>
+          {expenseList.length} records &mdash; Total: <span className="font-semibold text-rose-600">{formatRM(total)}</span>
         </p>
       </div>
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">

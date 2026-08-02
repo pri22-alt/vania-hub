@@ -1,12 +1,8 @@
 export const dynamic = 'force-dynamic'
 
 import { getVirmanisSales, getSalesStats } from '@/app/actions/virmanis'
-import { VirmanisSalesForm } from '@/components/virmanis-form'
 import { VirmanisList } from '@/components/virmanis-list'
-
-function formatCurrency(n: number) {
-  return new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 }).format(n)
-}
+import { formatRM } from '@/lib/utils/currency'
 
 export default async function VirmanisSalesPage() {
   const [sales, stats] = await Promise.all([getVirmanisSales(), getSalesStats()])
@@ -15,19 +11,17 @@ export default async function VirmanisSalesPage() {
 
   return (
     <div className="p-6 md:p-8 max-w-5xl mx-auto">
-      <div className="mb-6">
+      <div className="mb-8">
         <h2 className="text-2xl font-bold text-foreground">Virmanis United</h2>
         <p className="text-muted-foreground text-sm mt-1">
-          {txCount} sales this month &mdash; Total: <span className="font-semibold text-orange-600">{formatCurrency(totalSales)}</span>
+          Sales revenue tracking — {txCount} records this month &mdash; Total: <span className="font-semibold text-orange-600">{formatRM(totalSales)}</span>
+        </p>
+        <p className="text-xs text-muted-foreground mt-3 bg-blue-50 border border-blue-200 rounded p-3">
+          💡 To record a new sale, go to <strong>Income</strong> and select <strong>"Virmanis United"</strong> as the category. Sales will automatically appear here.
         </p>
       </div>
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <div className="lg:col-span-1">
-          <VirmanisSalesForm />
-        </div>
-        <div className="lg:col-span-2">
-          <VirmanisList sales={sales} />
-        </div>
+      <div className="w-full">
+        <VirmanisList sales={sales} />
       </div>
     </div>
   )

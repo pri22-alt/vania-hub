@@ -1,10 +1,7 @@
 export const dynamic = 'force-dynamic'
 
 import { getFinancialOverview, getExpensesByCategory, getPaymentMethodBreakdown } from '@/app/actions/analytics'
-
-function formatCurrency(n: number) {
-  return new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 }).format(n)
-}
+import { formatRM } from '@/lib/utils/currency'
 
 export default async function AnalyticsPage() {
   const [overview, categoryData, methodData] = await Promise.all([
@@ -33,7 +30,7 @@ export default async function AnalyticsPage() {
         ].map(item => (
           <div key={item.label} className="bg-card border border-border rounded-xl p-4">
             <p className="text-xs text-muted-foreground mb-1">{item.label}</p>
-            <p className={`text-lg font-bold ${item.color}`}>{formatCurrency(item.value)}</p>
+            <p className={`text-lg font-bold ${item.color}`}>{formatRM(item.value)}</p>
           </div>
         ))}
       </div>
@@ -53,7 +50,7 @@ export default async function AnalyticsPage() {
                   <div key={item.category}>
                     <div className="flex items-center justify-between text-sm mb-1">
                       <span className="text-foreground">{item.category}</span>
-                      <span className="font-medium">{formatCurrency(Number(item.total))}</span>
+                      <span className="font-medium">{formatRM(Number(item.total))}</span>
                     </div>
                     <div className="h-2 bg-muted rounded-full overflow-hidden">
                       <div className="h-full bg-primary rounded-full transition-all" style={{ width: `${pct}%` }} />
@@ -78,7 +75,7 @@ export default async function AnalyticsPage() {
                     <p className="text-sm font-medium capitalize text-foreground">{item.method}</p>
                     <p className="text-xs text-muted-foreground">{item.count} transactions</p>
                   </div>
-                  <p className="text-sm font-semibold">{formatCurrency(Number(item.total))}</p>
+                  <p className="text-sm font-semibold">{formatRM(Number(item.total))}</p>
                 </div>
               ))}
             </div>
@@ -89,7 +86,7 @@ export default async function AnalyticsPage() {
       {overview.pendingDues > 0 && (
         <div className="mt-6 bg-amber-50 border border-amber-200 rounded-xl p-4 flex items-center justify-between">
           <p className="text-sm font-medium text-amber-800">Total Pending Dues</p>
-          <p className="text-lg font-bold text-amber-700">{formatCurrency(overview.pendingDues)}</p>
+          <p className="text-lg font-bold text-amber-700">{formatRM(overview.pendingDues)}</p>
         </div>
       )}
     </div>

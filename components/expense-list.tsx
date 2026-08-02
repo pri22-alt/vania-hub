@@ -5,6 +5,8 @@ import { deleteExpense, updateExpense } from '@/app/actions/expenses'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
 import Link from 'next/link'
+import { formatRM } from '@/lib/utils/currency'
+import { exportExpensesReport } from '@/lib/utils/export'
 
 export interface Expense {
   id: number
@@ -48,12 +50,7 @@ export function ExpenseList({ expenses }: { expenses: Expense[] }) {
     })
   }
 
-  const formatCurrency = (amount: string | number) => {
-    return new Intl.NumberFormat('en-US', {
-      style: 'currency',
-      currency: 'USD',
-    }).format(Number(amount))
-  }
+
 
   if (expenses.length === 0) {
     return (
@@ -68,7 +65,17 @@ export function ExpenseList({ expenses }: { expenses: Expense[] }) {
 
   return (
     <div className="flex flex-col gap-4">
-      <h2 className="text-xl font-semibold text-foreground">Recent Expenses</h2>
+      <div className="flex items-center justify-between">
+        <h2 className="text-xl font-semibold text-foreground">Recent Expenses</h2>
+        <Button 
+          size="sm" 
+          variant="outline"
+          onClick={() => exportExpensesReport(expenses, 'all')}
+          className="text-xs"
+        >
+          📥 Export CSV
+        </Button>
+      </div>
       
       <div className="overflow-x-auto">
         <table className="w-full text-sm">
@@ -147,7 +154,7 @@ export function ExpenseList({ expenses }: { expenses: Expense[] }) {
                         {expense.category}
                       </span>
                     </td>
-                    <td className="py-3 px-4 font-medium">{formatCurrency(expense.amount)}</td>
+                    <td className="py-3 px-4 font-medium">{formatRM(expense.amount)}</td>
                     <td className="py-3 px-4 capitalize">{expense.paymentMethod}</td>
                     <td className="py-3 px-4 text-right">
                       <div className="flex gap-2 justify-end">
