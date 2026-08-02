@@ -7,17 +7,28 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Card } from '@/components/ui/card'
 
+const HOUSEHOLD_INCOME = ['Salary', 'Bonus', 'Interest', 'Other']
+const BUSINESS_INCOME = ['Virmanis United Sales', 'Consulting', 'Other']
+
 export function IncomeForm() {
   const [formData, setFormData] = useState({
     date: new Date().toISOString().split('T')[0],
     description: '',
+    categoryType: 'household',
+    category: 'Salary',
+    subcategory: 'Salary',
     amount: '',
-    source: 'cash' as const,
+    source: 'bank_transfer' as const,
+    remarks: '',
     notes: '',
   })
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [success, setSuccess] = useState(false)
+
+  const categories = formData.categoryType === 'business' 
+    ? BUSINESS_INCOME 
+    : HOUSEHOLD_INCOME
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -26,13 +37,20 @@ export function IncomeForm() {
     setLoading(true)
 
     try {
-      await addIncome(formData)
+      await addIncome({
+        ...formData,
+        category: formData.categoryType === 'business' ? 'Virmanis United' : formData.category,
+      })
       setSuccess(true)
       setFormData({
         date: new Date().toISOString().split('T')[0],
         description: '',
+        categoryType: 'household',
+        category: 'Salary',
+        subcategory: 'Salary',
         amount: '',
-        source: 'cash',
+        source: 'bank_transfer',
+        remarks: '',
         notes: '',
       })
       setTimeout(() => setSuccess(false), 3000)
@@ -48,16 +66,40 @@ export function IncomeForm() {
       <h2 className="text-xl font-semibold text-foreground mb-6">Record Income</h2>
       
       <form onSubmit={handleSubmit} className="flex flex-col gap-4">
-        {/* Date */}
-        <div className="flex flex-col gap-2">
-          <Label htmlFor="date">Date</Label>
-          <Input
-            id="date"
-            type="date"
-            value={formData.date}
-            onChange={(e) => setFormData({ ...formData, date: e.target.value })}
-            required
-          />
+        <div className="grid grid-cols-2 gap-4">
+          {/* Date */}
+          <div className="flex flex-col gap-2">
+            <Label htmlFor="date">Date</Label>
+            <Input
+              id="date"
+              type="date"
+              value={formData.date}
+              onChange={(e) => setFormData({ ...formData, date: e.target.value })}
+              required
+            />
+          </div>
+
+          {/* Category Type */}
+          <div className="flex flex-col gap-2">
+            <Label htmlFor="categoryType">Type</Label>
+            <select
+              id="categoryType"
+              value={formData.categoryType}
+              onChange={(e) => {
+                const newType = e.target.value
+                setFormData({
+                  ...formData,
+                  categoryType: newType,
+                  category: newType === 'business' ? BUSINESS_INCOME[0] : HOUSEHOLD_INCOME[0],
+                  subcategory: newType === 'business' ? BUSINESS_INCOME[0] : HOUSEHOLD_INCOME[0],
+                })
+              }}
+              className="border border-input rounded-md px-3 py-2 text-sm"
+            >
+              <option value="household">Household</option>
+              <option value="business">Business (Virmanis United)</option>
+            </select>
+          </div>
         </div>
 
         {/* Description */}
@@ -66,25 +108,44 @@ export function IncomeForm() {
           <Input
             id="description"
             type="text"
-            placeholder="e.g., Client payment, Monthly salary"
+            placeholder="e.g., Monthly salary, Product sales"
             value={formData.description}
             onChange={(e) => setFormData({ ...formData, description: e.target.value })}
             required
           />
         </div>
 
-        {/* Amount */}
-        <div className="flex flex-col gap-2">
-          <Label htmlFor="amount">Amount</Label>
-          <Input
-            id="amount"
-            type="number"
-            placeholder="0.00"
-            step="0.01"
-            value={formData.amount}
-            onChange={(e) => setFormData({ ...formData, amount: e.target.value })}
-            required
-          />
+        <div className="grid grid-cols-2 gap-4">
+          {/* Category */}
+          <div className="flex flex-col gap-2">
+            <Label htmlFor="category">Category</Label>
+            <select
+              id="category"
+              value={formData.category}
+              onChange={(e) => setFormData({ ...formData, category: e.target.value, subcategory: e.target.value })}
+              className="border border-input rounded-md px-3 py-2 text-sm"
+            >
+              {categories.map((cat) => (
+                <option key={cat} value={cat}>
+                  {cat}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          {/* Amount */}
+          <div className="flex flex-col gap-2">
+            <Label htmlFor="amount">Amount</Label>
+            <Input
+              id="amount"
+              type="number"
+              placeholder="0.00"
+              step="0.01"
+              value={formData.amount}
+              onChange={(e) => setFormData({ ...formData, amount: e.target.value })}
+              required
+            />
+          </div>
         </div>
 
         {/* Source */}
@@ -101,6 +162,19 @@ export function IncomeForm() {
           </select>
         </div>
 
+        {/* Remarks */}
+        <div className="flex flex-col gap-2">
+          <Label htmlFor="remarks">Remarks (Optional)</Label>
+          <textarea
+            id="remarks"
+            placeholder="Additional remarks or context..."
+            value={formData.remarks}
+            onChange={(e) => setFormData({ ...formData, remarks: e.target.value })}
+            className="border border-input rounded-md px-3 py-2 text-sm resize-none"
+            rows={2}
+          />
+        </div>
+
         {/* Notes */}
         <div className="flex flex-col gap-2">
           <Label htmlFor="notes">Notes (Optional)</Label>
@@ -110,7 +184,7 @@ export function IncomeForm() {
             value={formData.notes}
             onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
             className="border border-input rounded-md px-3 py-2 text-sm resize-none"
-            rows={3}
+            rows={2}
           />
         </div>
 

@@ -13,7 +13,7 @@ const navCards = [
   { href: '/income', label: 'Income', desc: 'Record earnings', color: 'bg-emerald-50 border-emerald-200', text: 'text-emerald-700' },
   { href: '/dues', label: 'Dues & Bills', desc: 'Manage payments', color: 'bg-amber-50 border-amber-200', text: 'text-amber-700' },
   { href: '/maid', label: 'Maid Attendance', desc: 'Clock in / out', color: 'bg-sky-50 border-sky-200', text: 'text-sky-700' },
-  { href: '/cheese-sales', label: 'Cheese Sales', desc: 'Business revenue', color: 'bg-orange-50 border-orange-200', text: 'text-orange-700' },
+  { href: '/virmanis', label: 'Virmanis United', desc: 'Business revenue', color: 'bg-orange-50 border-orange-200', text: 'text-orange-700' },
   { href: '/analytics', label: 'Analytics', desc: 'Reports & insights', color: 'bg-violet-50 border-violet-200', text: 'text-violet-700' },
 ]
 

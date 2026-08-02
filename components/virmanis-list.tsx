@@ -1,11 +1,11 @@
 'use client'
 
 import { useState } from 'react'
-import { deleteCheeseSale, updateCheeseSale } from '@/app/actions/cheese-sales'
+import { deleteVirmanisSale, updateVirmanisSale } from '@/app/actions/virmanis'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
 
-export interface CheeseSale {
+export interface VirmanisSale {
   id: number
   date: string | Date
   customerName: string
@@ -14,27 +14,28 @@ export interface CheeseSale {
   unitPrice: string | number
   totalAmount: string | number
   paymentMethod: string
+  remarks?: string | null
   notes?: string | null
 }
 
-export function CheeseSalesList({ sales }: { sales: CheeseSale[] }) {
+export function VirmanisList({ sales }: { sales: VirmanisSale[] }) {
   const [editingId, setEditingId] = useState<number | null>(null)
-  const [editData, setEditData] = useState<Partial<CheeseSale>>({})
+  const [editData, setEditData] = useState<Partial<VirmanisSale>>({})
 
   const handleDelete = async (id: number) => {
     if (confirm('Are you sure you want to delete this sale?')) {
-      await deleteCheeseSale(id)
+      await deleteVirmanisSale(id)
     }
   }
 
-  const handleEdit = (sale: CheeseSale) => {
+  const handleEdit = (sale: VirmanisSale) => {
     setEditingId(sale.id)
     setEditData(sale)
   }
 
   const handleSaveEdit = async () => {
     if (editingId && editData.totalAmount) {
-      await updateCheeseSale(editingId, editData as any)
+      await updateVirmanisSale(editingId, editData as any)
       setEditingId(null)
       setEditData({})
     }

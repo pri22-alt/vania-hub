@@ -10,7 +10,7 @@ const navItems = [
   { href: '/income', label: 'Income', icon: '↑' },
   { href: '/dues', label: 'Dues & Bills', icon: '⊙' },
   { href: '/maid', label: 'Maid', icon: '◈' },
-  { href: '/cheese-sales', label: 'Cheese Sales', icon: '◉' },
+  { href: '/virmanis', label: 'Virmanis United', icon: '◉' },
   { href: '/analytics', label: 'Analytics', icon: '◎' },
   { href: '/settings', label: 'Settings', icon: '⚙' },
 ]

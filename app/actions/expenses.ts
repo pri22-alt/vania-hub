@@ -19,20 +19,26 @@ export async function getExpenses(startDate?: string, endDate?: string) {
 export async function addExpense(data: {
   date: string
   description: string
+  categoryType: string
   category: string
+  subcategory?: string
   amount: string
   paymentMethod: string
   googleFormsLink?: string
+  remarks?: string
   notes?: string
 }) {
   await db.insert(expenses).values({
     userId: SHARED_USER_ID,
     date: data.date,
     description: data.description,
+    categoryType: data.categoryType,
     category: data.category,
+    subcategory: data.subcategory || null,
     amount: data.amount,
     paymentMethod: data.paymentMethod,
     googleFormsLink: data.googleFormsLink || null,
+    remarks: data.remarks || null,
     notes: data.notes || null,
   })
   revalidatePath('/expenses')

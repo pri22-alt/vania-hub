@@ -19,16 +19,24 @@ export async function getIncome(startDate?: string, endDate?: string) {
 export async function addIncome(data: {
   date: string
   description: string
+  categoryType: string
+  category: string
+  subcategory?: string
   amount: string
   source: string
+  remarks?: string
   notes?: string
 }) {
   await db.insert(income).values({
     userId: SHARED_USER_ID,
     date: data.date,
     description: data.description,
+    categoryType: data.categoryType,
+    category: data.category,
+    subcategory: data.subcategory || null,
     amount: data.amount,
     source: data.source,
+    remarks: data.remarks || null,
     notes: data.notes || null,
   })
   revalidatePath('/income')

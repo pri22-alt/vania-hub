@@ -1,7 +1,7 @@
 'use server'
 
 import { db } from '@/lib/db'
-import { expenses, income, cheeseSales, dues } from '@/lib/db/schema'
+import { expenses, income, virmanisSales, dues } from '@/lib/db/schema'
 import { and, desc, eq, gte, lte, sql } from 'drizzle-orm'
 
 export async function getFinancialOverview(monthYear?: string) {
@@ -14,8 +14,8 @@ export async function getFinancialOverview(monthYear?: string) {
     db.select({ total: sql<number>`COALESCE(SUM(CAST(amount AS FLOAT)), 0)` })
       .from(income)
       .where(sql`TO_CHAR(date, 'YYYY-MM') = ${currentMonth}`),
-    db.select({ total: sql<number>`COALESCE(SUM(CAST(totalAmount AS FLOAT)), 0)` })
-      .from(cheeseSales)
+    db.select({ total: sql<number>`COALESCE(SUM(CAST(totalamount AS FLOAT)), 0)` })
+      .from(virmanisSales)
       .where(sql`TO_CHAR(date, 'YYYY-MM') = ${currentMonth}`),
     db.select({ total: sql<number>`COALESCE(SUM(CAST(amount AS FLOAT)), 0)` })
       .from(dues)

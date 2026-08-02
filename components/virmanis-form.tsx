@@ -1,13 +1,13 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { addCheeseSale } from '@/app/actions/cheese-sales'
+import { addVirmanisSale } from '@/app/actions/virmanis'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Card } from '@/components/ui/card'
 
-export function CheeseSalesForm() {
+export function VirmanisSalesForm() {
   const [formData, setFormData] = useState({
     date: new Date().toISOString().split('T')[0],
     customerName: '',
@@ -16,6 +16,7 @@ export function CheeseSalesForm() {
     unitPrice: '',
     totalAmount: '',
     paymentMethod: 'cash' as const,
+    remarks: '',
     notes: '',
   })
   const [loading, setLoading] = useState(false)
@@ -37,7 +38,7 @@ export function CheeseSalesForm() {
     setLoading(true)
 
     try {
-      await addCheeseSale(formData)
+      await addVirmanisSale(formData)
       setSuccess(true)
       setFormData({
         date: new Date().toISOString().split('T')[0],
@@ -47,6 +48,7 @@ export function CheeseSalesForm() {
         unitPrice: '',
         totalAmount: '',
         paymentMethod: 'cash',
+        remarks: '',
         notes: '',
       })
       setTimeout(() => setSuccess(false), 3000)
@@ -156,6 +158,19 @@ export function CheeseSalesForm() {
           </select>
         </div>
 
+        {/* Remarks */}
+        <div className="flex flex-col gap-2">
+          <Label htmlFor="remarks">Remarks (Optional)</Label>
+          <textarea
+            id="remarks"
+            placeholder="Additional remarks or context..."
+            value={formData.remarks}
+            onChange={(e) => setFormData({ ...formData, remarks: e.target.value })}
+            className="border border-input rounded-md px-3 py-2 text-sm resize-none"
+            rows={2}
+          />
+        </div>
+
         {/* Notes */}
         <div className="flex flex-col gap-2">
           <Label htmlFor="notes">Notes (Optional)</Label>
@@ -165,7 +180,7 @@ export function CheeseSalesForm() {
             value={formData.notes}
             onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
             className="border border-input rounded-md px-3 py-2 text-sm resize-none"
-            rows={3}
+            rows={2}
           />
         </div>
 

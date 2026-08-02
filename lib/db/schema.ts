@@ -68,10 +68,13 @@ export const expenses = pgTable('expenses', {
   userId: text('userId').notNull(),
   date: date('date').notNull(),
   description: text('description').notNull(),
+  categoryType: varchar('categoryType', { length: 20 }).notNull().default('household'), // 'household' or 'business'
   category: text('category').notNull(),
+  subcategory: text('subcategory'),
   amount: decimal('amount', { precision: 12, scale: 2 }).notNull(),
   paymentMethod: varchar('paymentMethod', { length: 20 }).notNull(),
   googleFormsLink: text('googleFormsLink'),
+  remarks: text('remarks'),
   notes: text('notes'),
   createdAt: timestamp('createdAt').notNull().defaultNow(),
   updatedAt: timestamp('updatedAt').notNull().defaultNow(),
@@ -82,8 +85,12 @@ export const income = pgTable('income', {
   userId: text('userId').notNull(),
   date: date('date').notNull(),
   description: text('description').notNull(),
+  categoryType: varchar('categoryType', { length: 20 }).notNull().default('household'), // 'household' or 'business'
+  category: text('category').notNull().default('salary'),
+  subcategory: text('subcategory'),
   amount: decimal('amount', { precision: 12, scale: 2 }).notNull(),
-  source: varchar('source', { length: 20 }).notNull(),
+  source: varchar('source', { length: 50 }),
+  remarks: text('remarks'),
   notes: text('notes'),
   createdAt: timestamp('createdAt').notNull().defaultNow(),
   updatedAt: timestamp('updatedAt').notNull().defaultNow(),
@@ -115,7 +122,7 @@ export const maidAttendance = pgTable('maid_attendance', {
   updatedAt: timestamp('updatedAt').notNull().defaultNow(),
 })
 
-export const cheeseSales = pgTable('cheese_sales', {
+export const virmanisSales = pgTable('virmanis_sales', {
   id: serial('id').primaryKey(),
   userId: text('userId').notNull(),
   date: date('date').notNull(),
@@ -125,6 +132,7 @@ export const cheeseSales = pgTable('cheese_sales', {
   unitPrice: decimal('unitPrice', { precision: 12, scale: 2 }).notNull(),
   totalAmount: decimal('totalAmount', { precision: 12, scale: 2 }).notNull(),
   paymentMethod: varchar('paymentMethod', { length: 20 }).notNull(),
+  remarks: text('remarks'),
   notes: text('notes'),
   createdAt: timestamp('createdAt').notNull().defaultNow(),
   updatedAt: timestamp('updatedAt').notNull().defaultNow(),
