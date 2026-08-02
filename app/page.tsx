@@ -83,11 +83,12 @@ export default async function DashboardPage() {
                 </div>
               ))}
             </div>
-          {pending.length > 4 && (
-            <p className="text-xs text-amber-600 mt-2">+{pending.length - 4} more</p>
-          )}
-        </div>
-      )}
+            {pending.length > 4 && (
+              <p className="text-xs text-amber-600 dark:text-amber-400 mt-3">+{pending.length - 4} more</p>
+            )}
+          </div>
+        )}
+      </div>
     </div>
   )
 }
