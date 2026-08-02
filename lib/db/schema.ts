@@ -65,85 +65,85 @@ export const verification = pgTable('verification', {
 
 export const expenses = pgTable('expenses', {
   id: serial('id').primaryKey(),
-  userId: text('userId').notNull(),
+  userId: text('userid').notNull(),
   date: date('date').notNull(),
   description: text('description').notNull(),
-  categoryType: varchar('categoryType', { length: 20 }).notNull().default('household'), // 'household' or 'business'
+  categoryType: varchar('categorytype', { length: 20 }).notNull().default('household'), // 'household' or 'business'
   category: text('category').notNull(),
   subcategory: text('subcategory'),
   amount: decimal('amount', { precision: 12, scale: 2 }).notNull(),
-  paymentMethod: varchar('paymentMethod', { length: 20 }).notNull(),
-  googleFormsLink: text('googleFormsLink'),
+  paymentMethod: varchar('paymentmethod', { length: 20 }).notNull(),
+  googleFormsLink: text('googleformslink'),
   remarks: text('remarks'),
   notes: text('notes'),
-  createdAt: timestamp('createdAt').notNull().defaultNow(),
-  updatedAt: timestamp('updatedAt').notNull().defaultNow(),
+  createdAt: timestamp('createdat').notNull().defaultNow(),
+  updatedAt: timestamp('updatedat').notNull().defaultNow(),
 })
 
 export const income = pgTable('income', {
   id: serial('id').primaryKey(),
-  userId: text('userId').notNull(),
+  userId: text('userid').notNull(),
   date: date('date').notNull(),
   description: text('description').notNull(),
-  categoryType: varchar('categoryType', { length: 20 }).notNull().default('household'), // 'household' or 'business'
+  categoryType: varchar('categorytype', { length: 20 }).notNull().default('household'), // 'household' or 'business'
   category: text('category').notNull().default('salary'),
   subcategory: text('subcategory'),
   amount: decimal('amount', { precision: 12, scale: 2 }).notNull(),
   source: varchar('source', { length: 50 }),
   remarks: text('remarks'),
   notes: text('notes'),
-  createdAt: timestamp('createdAt').notNull().defaultNow(),
-  updatedAt: timestamp('updatedAt').notNull().defaultNow(),
+  createdAt: timestamp('createdat').notNull().defaultNow(),
+  updatedAt: timestamp('updatedat').notNull().defaultNow(),
 })
 
 export const dues = pgTable('dues', {
   id: serial('id').primaryKey(),
-  userId: text('userId').notNull(),
+  userId: text('userid').notNull(),
   date: date('date').notNull(),
   description: text('description').notNull(),
   amount: decimal('amount', { precision: 12, scale: 2 }).notNull(),
   status: varchar('status', { length: 20 }).notNull().default('pending'),
-  paidDate: date('paidDate'),
+  paidDate: date('paiddate'),
   category: text('category'),
   notes: text('notes'),
-  createdAt: timestamp('createdAt').notNull().defaultNow(),
-  updatedAt: timestamp('updatedAt').notNull().defaultNow(),
+  createdAt: timestamp('createdat').notNull().defaultNow(),
+  updatedAt: timestamp('updatedat').notNull().defaultNow(),
 })
 
 export const maidAttendance = pgTable('maid_attendance', {
   id: serial('id').primaryKey(),
-  userId: text('userId').notNull(),
+  userId: text('userid').notNull(),
   date: date('date').notNull(),
-  clockInTime: timestamp('clockInTime'),
-  clockOutTime: timestamp('clockOutTime'),
-  clockedInBy: varchar('clockedInBy', { length: 20 }).notNull(),
+  clockInTime: timestamp('clockintime'),
+  clockOutTime: timestamp('clockouttime'),
+  clockedInBy: varchar('clockedinby', { length: 20 }).notNull(),
   notes: text('notes'),
-  createdAt: timestamp('createdAt').notNull().defaultNow(),
-  updatedAt: timestamp('updatedAt').notNull().defaultNow(),
+  createdAt: timestamp('createdat').notNull().defaultNow(),
+  updatedAt: timestamp('updatedat').notNull().defaultNow(),
 })
 
 export const virmanisSales = pgTable('virmanis_sales', {
   id: serial('id').primaryKey(),
-  userId: text('userId').notNull(),
+  userId: text('userid').notNull(),
   date: date('date').notNull(),
-  customerName: text('customerName').notNull(),
-  productName: text('productName').notNull(),
+  customerName: text('customername').notNull(),
+  productName: text('productname').notNull(),
   quantity: decimal('quantity', { precision: 10, scale: 2 }).notNull(),
-  unitPrice: decimal('unitPrice', { precision: 12, scale: 2 }).notNull(),
-  totalAmount: decimal('totalAmount', { precision: 12, scale: 2 }).notNull(),
-  paymentMethod: varchar('paymentMethod', { length: 20 }).notNull(),
+  unitPrice: decimal('unitprice', { precision: 12, scale: 2 }).notNull(),
+  totalAmount: decimal('totalamount', { precision: 12, scale: 2 }).notNull(),
+  paymentMethod: varchar('paymentmethod', { length: 20 }).notNull(),
   remarks: text('remarks'),
   notes: text('notes'),
-  createdAt: timestamp('createdAt').notNull().defaultNow(),
-  updatedAt: timestamp('updatedAt').notNull().defaultNow(),
+  createdAt: timestamp('createdat').notNull().defaultNow(),
+  updatedAt: timestamp('updatedat').notNull().defaultNow(),
 })
 
 export const budgetLimits = pgTable('budget_limits', {
   id: serial('id').primaryKey(),
-  userId: text('userId').notNull(),
+  userId: text('userid').notNull(),
   category: text('category').notNull(),
-  monthYear: varchar('monthYear', { length: 10 }).notNull(),
-  limitAmount: decimal('limitAmount', { precision: 12, scale: 2 }).notNull(),
-  createdAt: timestamp('createdAt').notNull().defaultNow(),
-  updatedAt: timestamp('updatedAt').notNull().defaultNow(),
+  monthYear: varchar('monthyear', { length: 10 }).notNull(),
+  limitAmount: decimal('limitamount', { precision: 12, scale: 2 }).notNull(),
+  createdAt: timestamp('createdat').notNull().defaultNow(),
+  updatedAt: timestamp('updatedat').notNull().defaultNow(),
 })
