@@ -5,6 +5,9 @@ import { formatRM } from '@/lib/utils/currency'
 
 // In-memory budget storage (in production, would use a database)
 // For now, we'll use predefined budget templates
+// In-memory budget adjustments per month (carry-forward and extra funds)
+const budgetAdjustments: { [key: string]: { carryForward: number; extraFunds: number } } = {}
+
 const DEFAULT_BUDGETS = [
   {
     id: 1,
@@ -58,6 +61,16 @@ const DEFAULT_BUDGETS = [
   },
 ]
 
+export async function updateBudgetAdjustment(budgetId: number, month: string, carryForward: number, extraFunds: number) {
+  const key = `${budgetId}-${month}`
+  budgetAdjustments[key] = { carryForward, extraFunds }
+}
+
+export function getBudgetAdjustment(budgetId: number, month: string) {
+  const key = `${budgetId}-${month}`
+  return budgetAdjustments[key] || { carryForward: 0, extraFunds: 0 }
+}
+
 export async function getBudgets() {
   return DEFAULT_BUDGETS
 }
@@ -67,38 +80,40 @@ export async function getBudgetById(id: number) {
 }
 
 export async function getAllBudgetsStatus() {
-  const allBudgets = DEFAULT_BUDGETS
-  const expenses = await getExpenses()
+  const allBudgets = await getBudgets()
   const currentMonth = new Date().toISOString().slice(0, 7)
 
-  return allBudgets.map(budget => {
-    // Calculate spending for this budget's category this month
-    const budgetSpending = expenses
-      .filter(exp => {
-        const expMonth = exp.date instanceof Date 
-          ? exp.date.toISOString().slice(0, 7)
-          : typeof exp.date === 'string' 
-          ? exp.date.slice(0, 7)
-          : new Date(exp.date).toISOString().slice(0, 7)
-        return exp.category === budget.category && expMonth === currentMonth
-      })
-      .reduce((sum, exp) => sum + Number(exp.amount), 0)
+  const budgetsWithStatus = await Promise.all(
+    allBudgets.map(async (budget) => {
+      const spent = await getSpentAmount(budget.category, budget.categoryType)
+      const adjustments = getBudgetAdjustment(budget.id, currentMonth)
+      const adjustedBudget = Number(budget.budgetAmount) + adjustments.carryForward + adjustments.extraFunds
 
-    const budgetAmount = Number(budget.budgetAmount)
-    const percentageUsed = budgetAmount > 0 ? (budgetSpending / budgetAmount) * 100 : 0
-    const remaining = budgetAmount - budgetSpending
-    const isOverBudget = budgetSpending > budgetAmount
-    const isWarning = percentageUsed >= budget.alertThreshold
+      return {
+        ...budget,
+        spent,
+        adjustments,
+        adjustedBudget,
+      }
+    }),
+  )
+
+  return budgetsWithStatus.map((budget) => {
+    const remaining = budget.adjustedBudget - budget.spent
+    const percentage = (budget.spent / budget.adjustedBudget) * 100
+    const isAlert = percentage >= budget.alertThreshold
+    const isOverBudget = remaining < 0
 
     return {
       ...budget,
-      spent: budgetSpending,
-      remaining: Math.max(0, remaining),
-      percentageUsed: Math.round(percentageUsed),
+      remaining,
+      percentage: Math.min(100, Math.round(percentage)),
+      isAlert,
       isOverBudget,
-      isWarning,
-      status: isOverBudget ? 'over' : isWarning ? 'warning' : 'safe',
+      status: isOverBudget ? 'over' : isAlert ? 'warning' : 'ok',
     }
+  })
+}
   })
 }
 

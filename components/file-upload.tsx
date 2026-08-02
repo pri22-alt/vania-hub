@@ -12,7 +12,12 @@ export function FileUpload({ onFileSelect, disabled }: FileUploadProps) {
   const [isUploading, setIsUploading] = useState(false)
   const [uploadProgress, setUploadProgress] = useState(0)
   const [uploadedFile, setUploadedFile] = useState<{ name: string; url: string } | null>(null)
+  const [showCamera, setShowCamera] = useState(false)
   const fileInputRef = useRef<HTMLInputElement>(null)
+  const cameraInputRef = useRef<HTMLInputElement>(null)
+  const videoRef = useRef<HTMLVideoElement>(null)
+  const canvasRef = useRef<HTMLCanvasElement>(null)
+  const streamRef = useRef<MediaStream | null>(null)
 
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
@@ -87,30 +92,157 @@ export function FileUpload({ onFileSelect, disabled }: FileUploadProps) {
     }
   }
 
+  const startCamera = async () => {
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({
+        video: { facingMode: 'environment' },
+        audio: false,
+      })
+      if (videoRef.current) {
+        videoRef.current.srcObject = stream
+        streamRef.current = stream
+        setShowCamera(true)
+      }
+    } catch (error) {
+      console.error('[v0] Camera error:', error)
+      alert('Unable to access camera. Please check permissions.')
+    }
+  }
+
+  const stopCamera = () => {
+    if (streamRef.current) {
+      streamRef.current.getTracks().forEach((track) => track.stop())
+      streamRef.current = null
+    }
+    setShowCamera(false)
+  }
+
+  const capturePhoto = async () => {
+    if (!videoRef.current || !canvasRef.current) return
+
+    const ctx = canvasRef.current.getContext('2d')
+    if (!ctx) return
+
+    canvasRef.current.width = videoRef.current.videoWidth
+    canvasRef.current.height = videoRef.current.videoHeight
+    ctx.drawImage(videoRef.current, 0, 0)
+
+    canvasRef.current.toBlob(async (blob) => {
+      if (!blob) return
+
+      const file = new File([blob], `receipt-${Date.now()}.jpg`, { type: 'image/jpeg' })
+      stopCamera()
+
+      // Upload the captured photo
+      try {
+        setIsUploading(true)
+        setUploadProgress(0)
+
+        const formData = new FormData()
+        formData.append('file', file)
+
+        const progressInterval = setInterval(() => {
+          setUploadProgress((prev) => (prev < 90 ? prev + 10 : prev))
+        }, 200)
+
+        const response = await fetch('/api/upload', {
+          method: 'POST',
+          body: formData,
+        })
+
+        clearInterval(progressInterval)
+
+        if (!response.ok) {
+          throw new Error(`Upload failed: ${response.statusText}`)
+        }
+
+        const data = await response.json()
+        setUploadProgress(100)
+        setUploadedFile({ name: file.name, url: data.fileUrl })
+        onFileSelect(file, data.fileUrl, data.fileId)
+
+        setTimeout(() => {
+          setIsUploading(false)
+          setUploadProgress(0)
+        }, 1000)
+      } catch (error) {
+        console.error('[v0] Photo upload error:', error)
+        alert(`Upload failed: ${error instanceof Error ? error.message : 'Unknown error'}`)
+        setIsUploading(false)
+        setUploadProgress(0)
+      }
+    }, 'image/jpeg', 0.9)
+  }
+
   return (
     <div className="flex flex-col gap-3">
-      <div className="flex items-center gap-2">
-        <input
-          ref={fileInputRef}
-          type="file"
-          accept="image/jpeg,image/png,image/gif,image/webp,application/pdf"
-          onChange={handleFileChange}
-          disabled={disabled || isUploading}
-          className="hidden"
-          id="file-upload"
-        />
-        <label htmlFor="file-upload">
+      {!showCamera && (
+        <div className="flex items-center gap-2 flex-wrap">
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept="image/jpeg,image/png,image/gif,image/webp,application/pdf"
+            onChange={handleFileChange}
+            disabled={disabled || isUploading}
+            className="hidden"
+            id="file-upload"
+          />
+          <label htmlFor="file-upload">
+            <Button
+              asChild
+              variant="outline"
+              size="sm"
+              disabled={disabled || isUploading}
+              className="cursor-pointer"
+            >
+              <span>{isUploading ? 'Uploading...' : '📎 Upload'}</span>
+            </Button>
+          </label>
           <Button
-            asChild
+            type="button"
             variant="outline"
             size="sm"
+            onClick={startCamera}
             disabled={disabled || isUploading}
             className="cursor-pointer"
           >
-            <span>{isUploading ? 'Uploading...' : '📎 Attach Receipt'}</span>
+            📷 Take Photo
           </Button>
-        </label>
-      </div>
+        </div>
+      )}
+
+      {showCamera && (
+        <div className="flex flex-col gap-2 border border-border rounded-lg p-3 bg-muted/30">
+          <video
+            ref={videoRef}
+            autoPlay
+            playsInline
+            className="w-full h-auto rounded-lg bg-black max-h-64"
+          />
+          <div className="flex items-center gap-2">
+            <Button
+              type="button"
+              size="sm"
+              onClick={capturePhoto}
+              disabled={isUploading}
+              className="flex-1"
+            >
+              📷 Capture
+            </Button>
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={stopCamera}
+              disabled={isUploading}
+            >
+              Cancel
+            </Button>
+          </div>
+        </div>
+      )}
+
+      <canvas ref={canvasRef} className="hidden" />
 
       {isUploading && (
         <div className="flex items-center gap-2">
