@@ -185,3 +185,53 @@ export const virmaisClients = pgTable('virmanis_clients', {
   createdAt: timestamp('createdat').notNull().defaultNow(),
   updatedAt: timestamp('updatedat').notNull().defaultNow(),
 })
+
+export const companySettings = pgTable('company_settings', {
+  id: serial('id').primaryKey(),
+  userId: text('userid').notNull(),
+  companyName: text('companyname').notNull(),
+  companyEmail: text('companyemail'),
+  companyPhone: text('companyphone'),
+  companyAddress: text('companyaddress'),
+  companyCity: text('companycity'),
+  companyCountry: text('companycountry'),
+  logoUrl: text('logourl'),
+  logoDriveId: text('logodriveid'), // Google Drive file ID for logo
+  taxRate: decimal('taxrate', { precision: 5, scale: 2 }).default('0'), // Tax percentage
+  bankDetails: text('bankdetails'), // Bank account info for invoices
+  notes: text('notes'),
+  createdAt: timestamp('createdat').notNull().defaultNow(),
+  updatedAt: timestamp('updatedat').notNull().defaultNow(),
+})
+
+export const invoices = pgTable('invoices', {
+  id: serial('id').primaryKey(),
+  userId: text('userid').notNull(),
+  invoiceNumber: varchar('invoicenumber', { length: 50 }).notNull().unique(), // e.g., INV-2026-001
+  clientId: integer('clientid').notNull(),
+  clientName: text('clientname').notNull(),
+  clientEmail: text('clientemail'),
+  clientPhone: text('clientphone'),
+  clientAddress: text('clientaddress'),
+  invoiceDate: date('invoicedate').notNull(),
+  dueDate: date('duedate'),
+  subtotal: decimal('subtotal', { precision: 12, scale: 2 }).notNull(),
+  taxAmount: decimal('taxamount', { precision: 12, scale: 2 }).notNull().default('0'),
+  totalAmount: decimal('totalamount', { precision: 12, scale: 2 }).notNull(),
+  status: varchar('status', { length: 20 }).notNull().default('draft'), // draft, sent, paid
+  notes: text('notes'),
+  driveFileId: text('drivefileid'), // Google Drive PDF file ID
+  driveFileUrl: text('drivefileurl'), // Google Drive PDF link
+  createdAt: timestamp('createdat').notNull().defaultNow(),
+  updatedAt: timestamp('updatedat').notNull().defaultNow(),
+})
+
+export const invoiceLineItems = pgTable('invoice_line_items', {
+  id: serial('id').primaryKey(),
+  invoiceId: integer('invoiceid').notNull(),
+  description: text('description').notNull(),
+  quantity: decimal('quantity', { precision: 10, scale: 2 }).notNull(),
+  unitPrice: decimal('unitprice', { precision: 12, scale: 2 }).notNull(),
+  amount: decimal('amount', { precision: 12, scale: 2 }).notNull(),
+  createdAt: timestamp('createdat').notNull().defaultNow(),
+})

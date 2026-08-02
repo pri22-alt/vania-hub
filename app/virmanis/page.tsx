@@ -3,17 +3,23 @@ export const dynamic = 'force-dynamic'
 import { getVirmanisSales, getSalesStats } from '@/app/actions/virmanis'
 import { getVirmaisClients } from '@/app/actions/virmanis-clients'
 import { getExpenses } from '@/app/actions/expenses'
+import { getCompanySettings, getInvoices } from '@/app/actions/invoices'
 import { VirmanisList } from '@/components/virmanis-list'
 import { VirmaisClientsForm } from '@/components/virmanis-clients-form'
 import { VirmaisClientsList } from '@/components/virmanis-clients-list'
+import { CompanySettingsForm } from '@/components/company-settings-form'
+import { InvoiceGenerator } from '@/components/invoice-generator'
+import { InvoiceList } from '@/components/invoice-list'
 import { formatRM } from '@/lib/utils/currency'
 
 export default async function VirmanisSalesPage() {
-  const [sales, stats, clients, expenses] = await Promise.all([
+  const [sales, stats, clients, expenses, companySettings, invoices] = await Promise.all([
     getVirmanisSales(),
     getSalesStats(),
     getVirmaisClients(),
     getExpenses(),
+    getCompanySettings(),
+    getInvoices(),
   ])
   
   const totalSales = Number(stats[0]?.totalSales || 0)
@@ -139,6 +145,25 @@ export default async function VirmanisSalesPage() {
                 )}
               </div>
             </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Section 5: Company Settings */}
+      <div className="mb-12">
+        <h3 className="text-2xl font-bold text-foreground mb-6">5. Company Settings (Invoicing)</h3>
+        <CompanySettingsForm settings={companySettings} />
+      </div>
+
+      {/* Section 6: Invoice Generation */}
+      <div className="mb-12">
+        <h3 className="text-2xl font-bold text-foreground mb-6">6. Generate Invoices</h3>
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          <div className="lg:col-span-1">
+            <InvoiceGenerator clients={clients} settings={companySettings} />
+          </div>
+          <div className="lg:col-span-2">
+            <InvoiceList invoices={invoices} companySettings={companySettings} />
           </div>
         </div>
       </div>
