@@ -16,7 +16,7 @@ export default async function CalendarPage() {
       <div className="mb-8">
         <h1 className="text-3xl font-bold text-foreground">Calendar View</h1>
         <p className="text-muted-foreground text-sm mt-2">
-          {today.toLocaleDateString('ms-MY', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })} • Track dues, bills, maid check-ins, expenses, and income all in one place
+          {today.toLocaleDateString('en-US', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })} • Track dues, bills, maid check-ins, expenses, and income all in one place
         </p>
       </div>
 

@@ -20,6 +20,7 @@ export interface CalendarEvent {
 
 export async function getCalendarEvents(startDate: Date, endDate: Date): Promise<CalendarEvent[]> {
   try {
+    console.log('[v0] Calendar: fetching events from', startDate, 'to', endDate)
     const [duesList, maidList, expenseList, incomeList, recurringList] = await Promise.all([
       db
         .select({
@@ -84,15 +85,24 @@ export async function getCalendarEvents(startDate: Date, endDate: Date): Promise
         .orderBy(recurringBills.dayOfMonth),
     ])
 
+    console.log('[v0] Calendar: fetched', {
+      dues: duesList.length,
+      maid: maidList.length,
+      expenses: expenseList.length,
+      income: incomeList.length,
+      recurring: recurringList.length,
+    })
+
     const events: CalendarEvent[] = []
 
     // Process dues
     duesList.forEach((due: any) => {
       const dateStr = typeof due.date === 'string' ? due.date : due.date?.toISOString().split('T')[0]
+      const eventDate = new Date(`${dateStr}T00:00:00Z`)
       events.push({
         id: `due-${due.id}`,
         title: `Bill: ${due.category || due.description}`,
-        start: new Date(`${dateStr}T00:00:00Z`),
+        start: eventDate,
         end: new Date(`${dateStr}T23:59:59Z`),
         type: 'due',
         status: due.status,
@@ -179,9 +189,13 @@ export async function getCalendarEvents(startDate: Date, endDate: Date): Promise
       }
     })
 
+    console.log('[v0] Calendar: total events processed:', events.length)
+    if (events.length > 0) {
+      console.log('[v0] Calendar: sample events:', events.slice(0, 3))
+    }
     return events
   } catch (error) {
-    console.error('Error fetching calendar events:', error)
+    console.error('[v0] Error fetching calendar events:', error)
     return []
   }
 }
