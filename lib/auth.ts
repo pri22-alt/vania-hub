@@ -20,6 +20,7 @@ export const auth = betterAuth({
     ...(process.env.VERCEL_PROJECT_PRODUCTION_URL
       ? [`https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}`]
       : []),
+    'https://vaniafamily.vercel.app',
   ],
   session: {
     expiresIn: 60 * 60 * 24 * 7, // 7 days
