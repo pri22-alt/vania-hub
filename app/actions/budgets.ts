@@ -1,8 +1,34 @@
 'use server'
 
+import { db } from '@/lib/db'
+import { expenses } from '@/lib/db/schema'
+import { and, eq, gte, lte } from 'drizzle-orm'
 import { getExpenses } from './expenses'
 import { formatRM } from '@/lib/utils/currency'
 import { budgetAdjustments, updateBudgetAdjustmentSync, getBudgetAdjustment } from '@/lib/utils/budget-utils'
+
+// Get total spent for a category in the current month
+async function getSpentAmount(category: string, categoryType: string): Promise<number> {
+  const now = new Date()
+  const monthStart = new Date(now.getFullYear(), now.getMonth(), 1).toISOString().split('T')[0]
+  const monthEnd = new Date(now.getFullYear(), now.getMonth() + 1, 0).toISOString().split('T')[0]
+
+  const result = await db
+    .select({
+      total: expenses.amount,
+    })
+    .from(expenses)
+    .where(
+      and(
+        eq(expenses.category, category),
+        eq(expenses.categoryType, categoryType),
+        gte(expenses.date, monthStart),
+        lte(expenses.date, monthEnd)
+      )
+    )
+
+  return result.reduce((sum, row) => sum + Number(row.total || 0), 0)
+}
 
 const DEFAULT_BUDGETS = [
   {
