@@ -212,6 +212,7 @@ export function ExpenseForm() {
         <div className="flex flex-col gap-2">
           <Label>Receipt Photo/Document (Optional)</Label>
           <FileUpload
+            type="expense"
             onFileSelect={(file, url, fileId) => {
               setFormData({
                 ...formData,

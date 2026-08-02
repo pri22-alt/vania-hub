@@ -6,9 +6,10 @@ import { Button } from '@/components/ui/button'
 interface FileUploadProps {
   onFileSelect: (file: File | null, url: string | null, fileId: string | null) => void
   disabled?: boolean
+  type?: 'expense' | 'income'
 }
 
-export function FileUpload({ onFileSelect, disabled }: FileUploadProps) {
+export function FileUpload({ onFileSelect, disabled, type = 'expense' }: FileUploadProps) {
   const [isUploading, setIsUploading] = useState(false)
   const [uploadProgress, setUploadProgress] = useState(0)
   const [uploadedFile, setUploadedFile] = useState<{ name: string; url: string } | null>(null)
@@ -43,6 +44,7 @@ export function FileUpload({ onFileSelect, disabled }: FileUploadProps) {
       // Create form data
       const formData = new FormData()
       formData.append('file', file)
+      formData.append('type', type)
 
       // Simulate upload progress
       const progressInterval = setInterval(() => {
@@ -140,6 +142,7 @@ export function FileUpload({ onFileSelect, disabled }: FileUploadProps) {
 
         const formData = new FormData()
         formData.append('file', file)
+        formData.append('type', type)
 
         const progressInterval = setInterval(() => {
           setUploadProgress((prev) => (prev < 90 ? prev + 10 : prev))

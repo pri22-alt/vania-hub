@@ -217,6 +217,7 @@ export function IncomeForm() {
         <div className="flex flex-col gap-2">
           <Label>Receipt Photo/Document (Optional)</Label>
           <FileUpload
+            type="income"
             onFileSelect={(file, url, fileId) => {
               setFormData({
                 ...formData,
