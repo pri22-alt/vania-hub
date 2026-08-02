@@ -1,7 +1,7 @@
 export const dynamic = 'force-dynamic'
 
 import { getVirmanisSales, getSalesStats } from '@/app/actions/virmanis'
-import { getVirmaisClients } from '@/app/actions/virmanis-clients'
+import { getVirmaisClients, checkAndInactivateStaleClients } from '@/app/actions/virmanis-clients'
 import { getExpenses } from '@/app/actions/expenses'
 import { getCompanySettings, getInvoices } from '@/app/actions/invoices'
 import { VirmanisList } from '@/components/virmanis-list'
@@ -14,6 +14,9 @@ import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/
 import { formatRM } from '@/lib/utils/currency'
 
 export default async function VirmanisSalesPage() {
+  // Check for and inactivate clients with no sales in 2 months
+  const staleClients = await checkAndInactivateStaleClients()
+
   const [sales, stats, clients, expenses, companySettings, invoices] = await Promise.all([
     getVirmanisSales(),
     getSalesStats(),
@@ -35,6 +38,21 @@ export default async function VirmanisSalesPage() {
         <h2 className="text-3xl font-bold text-foreground">Virmanis United</h2>
         <p className="text-muted-foreground text-sm mt-2">Cheese business dashboard and client management</p>
       </div>
+
+      {/* Stale Clients Notification */}
+      {staleClients && staleClients.length > 0 && (
+        <div className="mb-6 p-4 bg-yellow-50 dark:bg-yellow-950 border border-yellow-200 dark:border-yellow-800 rounded-lg">
+          <p className="text-sm font-semibold text-yellow-800 dark:text-yellow-200">
+            {staleClients.length} client{staleClients.length > 1 ? 's' : ''} marked as inactive
+          </p>
+          <p className="text-xs text-yellow-700 dark:text-yellow-300 mt-1">
+            No sales in the last 2 months: {staleClients.map(c => c.clientName).join(', ')}
+          </p>
+          <p className="text-xs text-yellow-600 dark:text-yellow-400 mt-2">
+            You can reactivate them in the Clients Directory if they become active again.
+          </p>
+        </div>
+      )}
 
       {/* Quick Stats - Analytics Dashboard */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">

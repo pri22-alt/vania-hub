@@ -82,3 +82,48 @@ export async function updateClientLastPurchaseDate(clientId: number, date: strin
     .set({ lastPurchaseDate: date })
     .where(eq(virmaisClients.id, clientId))
 }
+
+export async function checkAndInactivateStaleClients() {
+  // Get all active clients
+  const { sql } = await import('drizzle-orm')
+  
+  const twoMonthsAgo = new Date()
+  twoMonthsAgo.setMonth(twoMonthsAgo.getMonth() - 2)
+  const twoMonthsAgoStr = twoMonthsAgo.toISOString().split('T')[0]
+
+  // Find clients that are active but have no sales in the last 2 months
+  const staleClients = await db
+    .select()
+    .from(virmaisClients)
+    .where(
+      and(
+        eq(virmaisClients.userId, SHARED_USER_ID),
+        eq(virmaisClients.isActive, true),
+        sql`COALESCE(${virmaisClients.lastPurchaseDate}, '1900-01-01') < ${twoMonthsAgoStr}`
+      )
+    )
+
+  // Mark them as inactive
+  if (staleClients.length > 0) {
+    await db
+      .update(virmaisClients)
+      .set({ isActive: false })
+      .where(
+        and(
+          eq(virmaisClients.userId, SHARED_USER_ID),
+          eq(virmaisClients.isActive, true),
+          sql`COALESCE(${virmaisClients.lastPurchaseDate}, '1900-01-01') < ${twoMonthsAgoStr}`
+        )
+      )
+  }
+
+  return staleClients
+}
+
+export async function toggleClientActive(id: number, isActive: boolean) {
+  await db
+    .update(virmaisClients)
+    .set({ isActive })
+    .where(and(eq(virmaisClients.id, id), eq(virmaisClients.userId, SHARED_USER_ID)))
+  revalidatePath('/virmanis')
+}
