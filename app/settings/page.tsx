@@ -3,6 +3,7 @@ export const dynamic = 'force-dynamic'
 import { getUsers } from '@/app/actions/settings'
 import { UserManager } from '@/components/user-manager'
 import { EnvSetupHelper } from '@/components/env-setup-helper'
+import { EnvVariablesForm } from '@/components/env-variables-form'
 
 export default async function SettingsPage() {
   const users = await getUsers()
@@ -23,7 +24,14 @@ export default async function SettingsPage() {
         <hr className="border-border" />
 
         <div>
-          <h3 className="text-xl font-semibold text-foreground mb-6">Google Drive Integration</h3>
+          <h3 className="text-xl font-semibold text-foreground mb-6">Google Drive Integration Setup</h3>
+          <EnvVariablesForm />
+        </div>
+
+        <hr className="border-border" />
+
+        <div>
+          <h3 className="text-xl font-semibold text-foreground mb-6">Detailed Instructions</h3>
           <EnvSetupHelper />
         </div>
       </div>
