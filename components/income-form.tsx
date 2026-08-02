@@ -9,8 +9,7 @@ import { Card } from '@/components/ui/card'
 import { FileUpload } from '@/components/file-upload'
 
 const HOUSEHOLD_INCOME = ['Salary', 'Bonus', 'Interest', 'Other']
-const BUSINESS_INCOME = ['Investment', 'Cheese Sales', 'Other']
-const CHEESE_SALES_TYPES = ['Cheese Sales', 'Others']
+const BUSINESS_INCOME = ['Investment', 'Other']
 
 export function IncomeForm() {
   const [formData, setFormData] = useState({
@@ -20,7 +19,6 @@ export function IncomeForm() {
     category: 'Salary',
     subcategory: 'Salary',
     customSubcategory: '',
-    clientName: '',
     amount: '',
     source: 'bank_transfer' as const,
     remarks: '',
@@ -56,7 +54,6 @@ export function IncomeForm() {
         category: 'Salary',
         subcategory: 'Salary',
         customSubcategory: '',
-        clientName: '',
         amount: '',
         source: 'bank_transfer',
         remarks: '',
@@ -174,20 +171,7 @@ export function IncomeForm() {
           </div>
         )}
 
-        {/* Conditional: Client Name for Cheese Sales */}
-        {formData.categoryType === 'business' && formData.category === 'Cheese Sales' && (
-          <div className="flex flex-col gap-2">
-            <Label htmlFor="clientName">Client Name</Label>
-            <Input
-              id="clientName"
-              type="text"
-              placeholder="Enter client name"
-              value={formData.clientName}
-              onChange={(e) => setFormData({ ...formData, clientName: e.target.value })}
-              required
-            />
-          </div>
-        )}
+
 
         {/* Source */}
         <div className="flex flex-col gap-2">
