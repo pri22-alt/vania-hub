@@ -5,7 +5,7 @@ import { dues } from '@/lib/db/schema'
 import { and, desc, eq, gte, lte } from 'drizzle-orm'
 import { revalidatePath } from 'next/cache'
 
-const SHARED_USER_ID = 'shared'
+const SHARED_USER_ID = 'family-hub'
 
 export async function getDues(startDate?: string, endDate?: string) {
   if (startDate && endDate) {

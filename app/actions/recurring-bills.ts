@@ -5,7 +5,7 @@ import { recurringBills } from '@/lib/db/schema'
 import { and, eq } from 'drizzle-orm'
 import { revalidatePath } from 'next/cache'
 
-const SHARED_USER_ID = 'shared'
+const SHARED_USER_ID = 'family-hub'
 
 export async function getRecurringBills() {
   return db.select().from(recurringBills).where(eq(recurringBills.userId, SHARED_USER_ID))

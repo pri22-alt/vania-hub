@@ -1,8 +1,8 @@
 'use server'
 
 import { db } from '@/lib/db'
-import { dues, maidAttendance, expenses, income } from '@/lib/db/schema'
-import { sql } from 'drizzle-orm'
+import { dues, maidAttendance, expenses, income, recurringBills } from '@/lib/db/schema'
+import { sql, eq } from 'drizzle-orm'
 
 const SHARED_USER_ID = 'family-hub'
 
@@ -20,7 +20,7 @@ export interface CalendarEvent {
 
 export async function getCalendarEvents(startDate: Date, endDate: Date): Promise<CalendarEvent[]> {
   try {
-    const [duesList, maidList, expenseList, incomeList] = await Promise.all([
+    const [duesList, maidList, expenseList, incomeList, recurringList] = await Promise.all([
       db
         .select({
           id: sql`CAST(${dues.id} AS TEXT)`,
@@ -69,6 +69,19 @@ export async function getCalendarEvents(startDate: Date, endDate: Date): Promise
         .from(income)
         .where(sql`${income.userid} = ${SHARED_USER_ID} AND ${income.date} BETWEEN ${startDate.toISOString().split('T')[0]} AND ${endDate.toISOString().split('T')[0]}`)
         .orderBy(income.date),
+
+      db
+        .select({
+          id: sql`CAST(${recurringBills.id} AS TEXT)`,
+          description: recurringBills.description,
+          amount: recurringBills.amount,
+          category: recurringBills.category,
+          dayOfMonth: recurringBills.dayOfMonth,
+          isActive: recurringBills.isActive,
+        })
+        .from(recurringBills)
+        .where(sql`${recurringBills.userid} = ${SHARED_USER_ID} AND ${recurringBills.isactive} = true`)
+        .orderBy(recurringBills.dayOfMonth),
     ])
 
     const events: CalendarEvent[] = []
@@ -125,6 +138,40 @@ export async function getCalendarEvents(startDate: Date, endDate: Date): Promise
         description: inc.description,
         category: inc.category,
       })
+    })
+
+    // Process recurring bills - generate events for each month in the date range
+    recurringList.forEach((bill: any) => {
+      if (!bill.isActive) return
+      
+      // Generate recurring bill events for each month in the range
+      const currentDate = new Date(startDate)
+      while (currentDate <= endDate) {
+        const year = currentDate.getFullYear()
+        const month = currentDate.getMonth()
+        
+        // Calculate the actual day (handle months with fewer days)
+        const lastDay = new Date(year, month + 1, 0).getDate()
+        const billDay = Math.min(bill.dayOfMonth, lastDay)
+        
+        const eventDate = new Date(year, month, billDay)
+        
+        // Only include if within the date range
+        if (eventDate >= startDate && eventDate <= endDate) {
+          events.push({
+            id: `recurring-${bill.id}-${year}-${month}-${billDay}`,
+            title: `Bill: ${bill.category || bill.description}`,
+            start: new Date(`${eventDate.toISOString().split('T')[0]}T00:00:00`),
+            end: new Date(`${eventDate.toISOString().split('T')[0]}T23:59:59`),
+            type: 'due',
+            amount: bill.amount?.toString(),
+            description: bill.description,
+          })
+        }
+        
+        // Move to next month
+        currentDate.setMonth(currentDate.getMonth() + 1)
+      }
     })
 
     return events
