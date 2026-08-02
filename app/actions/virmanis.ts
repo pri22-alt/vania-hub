@@ -62,39 +62,42 @@ export async function deleteVirmanisSale(id: number) {
   revalidatePath('/virmanis')
 }
 
-export async function getSalesStats() {
-  const currentMonth = new Date().toISOString().slice(0, 7)
+export async function getSalesStats(startDate?: string, endDate?: string) {
+  const start = startDate || new Date(new Date().getFullYear(), new Date().getMonth(), 1).toISOString().split('T')[0]
+  const end = endDate || new Date(new Date().getFullYear(), new Date().getMonth() + 1, 0).toISOString().split('T')[0]
   return db.select({
-    totalSales: sql<number>`SUM(CAST(totalamount AS FLOAT))`,
+    totalSales: sql<number>`COALESCE(SUM(CAST(totalamount AS FLOAT)), 0)`,
     transactionCount: sql<number>`COUNT(*)`,
-    avgSaleAmount: sql<number>`AVG(CAST(totalamount AS FLOAT))`,
+    avgSaleAmount: sql<number>`COALESCE(AVG(CAST(totalamount AS FLOAT)), 0)`,
   })
   .from(virmanisSales)
-  .where(sql`TO_CHAR(date, 'YYYY-MM') = ${currentMonth}`)
+  .where(and(gte(virmanisSales.date, start), lte(virmanisSales.date, end)))
 }
 
-export async function getSalesByCustomer() {
-  const currentMonth = new Date().toISOString().slice(0, 7)
+export async function getSalesByCustomer(startDate?: string, endDate?: string) {
+  const start = startDate || new Date(new Date().getFullYear(), new Date().getMonth(), 1).toISOString().split('T')[0]
+  const end = endDate || new Date(new Date().getFullYear(), new Date().getMonth() + 1, 0).toISOString().split('T')[0]
   return db.select({
     customerName: virmanisSales.customerName,
     total: sql<number>`SUM(CAST(totalamount AS FLOAT))`,
     count: sql<number>`COUNT(*)`,
   })
   .from(virmanisSales)
-  .where(sql`TO_CHAR(date, 'YYYY-MM') = ${currentMonth}`)
+  .where(and(gte(virmanisSales.date, start), lte(virmanisSales.date, end)))
   .groupBy(virmanisSales.customerName)
   .orderBy(desc(sql`SUM(CAST(totalamount AS FLOAT))`))
 }
 
-export async function getSalesByProduct() {
-  const currentMonth = new Date().toISOString().slice(0, 7)
+export async function getSalesByProduct(startDate?: string, endDate?: string) {
+  const start = startDate || new Date(new Date().getFullYear(), new Date().getMonth(), 1).toISOString().split('T')[0]
+  const end = endDate || new Date(new Date().getFullYear(), new Date().getMonth() + 1, 0).toISOString().split('T')[0]
   return db.select({
     productName: virmanisSales.productName,
     total: sql<number>`SUM(CAST(totalamount AS FLOAT))`,
     quantity: sql<number>`SUM(CAST(quantity AS FLOAT))`,
   })
   .from(virmanisSales)
-  .where(sql`TO_CHAR(date, 'YYYY-MM') = ${currentMonth}`)
+  .where(and(gte(virmanisSales.date, start), lte(virmanisSales.date, end)))
   .groupBy(virmanisSales.productName)
   .orderBy(desc(sql`SUM(CAST(totalamount AS FLOAT))`))
 }
