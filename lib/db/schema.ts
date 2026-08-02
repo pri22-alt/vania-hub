@@ -76,6 +76,8 @@ export const expenses = pgTable('expenses', {
   googleFormsLink: text('googleformslink'),
   remarks: text('remarks'),
   notes: text('notes'),
+  productId: integer('productid'), // Links a Cheese Purchase expense to a product
+  quantity: decimal('quantity', { precision: 12, scale: 2 }), // Quantity purchased for stock-in
   driveFileId: text('drivefileid'), // Google Drive file ID
   driveFileUrl: text('drivefileurl'), // Google Drive file link
   createdAt: timestamp('createdat').notNull().defaultNow(),
@@ -231,6 +233,69 @@ export const invoiceLineItems = pgTable('invoice_line_items', {
   invoiceId: integer('invoiceid').notNull(),
   description: text('description').notNull(),
   quantity: decimal('quantity', { precision: 10, scale: 2 }).notNull(),
+  unitPrice: decimal('unitprice', { precision: 12, scale: 2 }).notNull(),
+  amount: decimal('amount', { precision: 12, scale: 2 }).notNull(),
+  createdAt: timestamp('createdat').notNull().defaultNow(),
+})
+
+// --- Inventory & Orders ----------------------------------------------------
+
+// Product catalog (manually managed by the family)
+export const products = pgTable('products', {
+  id: serial('id').primaryKey(),
+  userId: text('userid').notNull(),
+  name: text('name').notNull(),
+  unit: varchar('unit', { length: 20 }).notNull().default('unit'), // e.g. kg, block, box
+  unitPrice: decimal('unitprice', { precision: 12, scale: 2 }).notNull().default('0'),
+  reorderLevel: decimal('reorderlevel', { precision: 12, scale: 2 }).notNull().default('0'),
+  isActive: boolean('isactive').notNull().default(true),
+  notes: text('notes'),
+  createdAt: timestamp('createdat').notNull().defaultNow(),
+  updatedAt: timestamp('updatedat').notNull().defaultNow(),
+})
+
+// Signed ledger of every stock change.
+// movementType: 'opening' | 'purchase' | 'sale' | 'adjustment'
+// quantity is positive for stock-in, negative for stock-out.
+export const inventoryMovements = pgTable('inventory_movements', {
+  id: serial('id').primaryKey(),
+  userId: text('userid').notNull(),
+  productId: integer('productid').notNull(),
+  movementType: varchar('movementtype', { length: 20 }).notNull(),
+  quantity: decimal('quantity', { precision: 12, scale: 2 }).notNull(),
+  movementDate: date('movementdate').notNull(),
+  referenceType: varchar('referencetype', { length: 20 }), // 'expense' | 'order' | 'sale' | 'manual'
+  referenceId: integer('referenceid'),
+  notes: text('notes'),
+  createdAt: timestamp('createdat').notNull().defaultNow(),
+})
+
+// Orders drive the sales/fulfillment lifecycle.
+// status: 'new' | 'packed' | 'completed' | 'cancelled'
+export const orders = pgTable('orders', {
+  id: serial('id').primaryKey(),
+  userId: text('userid').notNull(),
+  orderNumber: text('ordernumber').notNull(),
+  clientName: text('clientname').notNull(),
+  clientId: integer('clientid'),
+  status: varchar('status', { length: 20 }).notNull().default('new'),
+  orderDate: date('orderdate').notNull(),
+  total: decimal('total', { precision: 12, scale: 2 }).notNull().default('0'),
+  invoiceId: integer('invoiceid'),
+  saleId: integer('saleid'),
+  notes: text('notes'),
+  packedAt: timestamp('packedat'),
+  completedAt: timestamp('completedat'),
+  createdAt: timestamp('createdat').notNull().defaultNow(),
+  updatedAt: timestamp('updatedat').notNull().defaultNow(),
+})
+
+export const orderItems = pgTable('order_items', {
+  id: serial('id').primaryKey(),
+  orderId: integer('orderid').notNull(),
+  productId: integer('productid').notNull(),
+  productName: text('productname').notNull(),
+  quantity: decimal('quantity', { precision: 12, scale: 2 }).notNull(),
   unitPrice: decimal('unitprice', { precision: 12, scale: 2 }).notNull(),
   amount: decimal('amount', { precision: 12, scale: 2 }).notNull(),
   createdAt: timestamp('createdat').notNull().defaultNow(),
