@@ -1,78 +1,51 @@
 'use server'
 
-import { auth } from '@/lib/auth'
 import { db } from '@/lib/db'
 import { income } from '@/lib/db/schema'
 import { and, desc, eq, gte, lte } from 'drizzle-orm'
-import { headers } from 'next/headers'
 import { revalidatePath } from 'next/cache'
 
-async function getUserId() {
-  const session = await auth.api.getSession({ headers: await headers() })
-  if (!session?.user) throw new Error('Unauthorized')
-  return session.user.id
-}
+const SHARED_USER_ID = 'shared'
 
 export async function getIncome(startDate?: string, endDate?: string) {
-  const userId = await getUserId()
-  
-  let query = db
-    .select()
-    .from(income)
-    .where(eq(income.userId, userId))
-
-  if (startDate || endDate) {
-    const conditions = [eq(income.userId, userId)]
-    if (startDate) conditions.push(gte(income.date, startDate))
-    if (endDate) conditions.push(lte(income.date, endDate))
-    query = db.select().from(income).where(and(...conditions as any))
+  if (startDate && endDate) {
+    return db.select().from(income)
+      .where(and(gte(income.date, startDate), lte(income.date, endDate)))
+      .orderBy(desc(income.date))
   }
-
-  return query.orderBy(desc(income.date))
+  return db.select().from(income).orderBy(desc(income.date))
 }
 
 export async function addIncome(data: {
   date: string
   description: string
   amount: string
-  source: 'cash' | 'bank_transfer'
+  source: string
   notes?: string
 }) {
-  const userId = await getUserId()
-  
-  const result = await db.insert(income).values({
-    userId,
+  await db.insert(income).values({
+    userId: SHARED_USER_ID,
     date: data.date,
     description: data.description,
     amount: data.amount,
     source: data.source,
-    notes: data.notes,
+    notes: data.notes || null,
   })
-
   revalidatePath('/income')
-  return result
 }
 
-export async function updateIncome(
-  id: number,
-  data: Partial<typeof data>
-) {
-  const userId = await getUserId()
-  
-  await db
-    .update(income)
-    .set(data)
-    .where(and(eq(income.id, id), eq(income.userId, userId)))
-
+export async function updateIncome(id: number, data: {
+  date?: string
+  description?: string
+  amount?: string
+  source?: string
+  notes?: string
+}) {
+  await db.update(income).set({ ...data, updatedAt: new Date() }).where(eq(income.id, id))
   revalidatePath('/income')
 }
 
 export async function deleteIncome(id: number) {
-  const userId = await getUserId()
-  
-  await db
-    .delete(income)
-    .where(and(eq(income.id, id), eq(income.userId, userId)))
-
+  await db.delete(income).where(eq(income.id, id))
   revalidatePath('/income')
 }

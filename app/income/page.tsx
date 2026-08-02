@@ -1,45 +1,33 @@
+export const dynamic = 'force-dynamic'
+
 import { getIncome } from '@/app/actions/income'
 import { IncomeForm } from '@/components/income-form'
 import { IncomeList } from '@/components/income-list'
-import Link from 'next/link'
-import { Button } from '@/components/ui/button'
+
+function formatCurrency(n: number) {
+  return new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 }).format(n)
+}
 
 export default async function IncomePage() {
   const incomeList = await getIncome()
+  const total = incomeList.reduce((sum, i) => sum + Number(i.amount), 0)
 
   return (
-    <main className="min-h-screen bg-background">
-      {/* Header */}
-      <header className="border-b border-border">
-        <div className="container mx-auto px-4 py-6">
-          <div className="flex items-center justify-between">
-            <div>
-              <Link href="/">
-                <h1 className="text-3xl font-bold text-foreground hover:opacity-80">Vania Hub</h1>
-              </Link>
-              <p className="text-muted-foreground">Income Tracking</p>
-            </div>
-            <Link href="/">
-              <Button variant="outline">Back to Dashboard</Button>
-            </Link>
-          </div>
+    <div className="p-6 md:p-8 max-w-5xl mx-auto">
+      <div className="mb-6">
+        <h2 className="text-2xl font-bold text-foreground">Income</h2>
+        <p className="text-muted-foreground text-sm mt-1">
+          {incomeList.length} records &mdash; Total: <span className="font-semibold text-emerald-600">{formatCurrency(total)}</span>
+        </p>
+      </div>
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div className="lg:col-span-1">
+          <IncomeForm />
         </div>
-      </header>
-
-      {/* Main Content */}
-      <div className="container mx-auto px-4 py-12">
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          {/* Form */}
-          <div className="lg:col-span-1">
-            <IncomeForm />
-          </div>
-
-          {/* Income List */}
-          <div className="lg:col-span-2">
-            <IncomeList incomeList={incomeList} />
-          </div>
+        <div className="lg:col-span-2">
+          <IncomeList incomeList={incomeList} />
         </div>
       </div>
-    </main>
+    </div>
   )
 }

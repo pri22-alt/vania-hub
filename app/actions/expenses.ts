@@ -1,34 +1,19 @@
 'use server'
 
-import { auth } from '@/lib/auth'
 import { db } from '@/lib/db'
 import { expenses } from '@/lib/db/schema'
-import { and, desc, eq, gte, lte } from 'drizzle-orm'
-import { headers } from 'next/headers'
+import { and, desc, eq, gte, lte, sql } from 'drizzle-orm'
 import { revalidatePath } from 'next/cache'
 
-async function getUserId() {
-  const session = await auth.api.getSession({ headers: await headers() })
-  if (!session?.user) throw new Error('Unauthorized')
-  return session.user.id
-}
+const SHARED_USER_ID = 'shared'
 
 export async function getExpenses(startDate?: string, endDate?: string) {
-  const userId = await getUserId()
-  
-  let query = db
-    .select()
-    .from(expenses)
-    .where(eq(expenses.userId, userId))
-
-  if (startDate || endDate) {
-    const conditions = [eq(expenses.userId, userId)]
-    if (startDate) conditions.push(gte(expenses.date, startDate))
-    if (endDate) conditions.push(lte(expenses.date, endDate))
-    query = db.select().from(expenses).where(and(...conditions as any))
+  if (startDate && endDate) {
+    return db.select().from(expenses)
+      .where(and(gte(expenses.date, startDate), lte(expenses.date, endDate)))
+      .orderBy(desc(expenses.date))
   }
-
-  return query.orderBy(desc(expenses.date))
+  return db.select().from(expenses).orderBy(desc(expenses.date))
 }
 
 export async function addExpense(data: {
@@ -36,61 +21,50 @@ export async function addExpense(data: {
   description: string
   category: string
   amount: string
-  paymentMethod: 'cash' | 'bank' | 'card'
+  paymentMethod: string
   googleFormsLink?: string
   notes?: string
 }) {
-  const userId = await getUserId()
-  
-  const result = await db.insert(expenses).values({
-    userId,
+  await db.insert(expenses).values({
+    userId: SHARED_USER_ID,
     date: data.date,
     description: data.description,
     category: data.category,
     amount: data.amount,
     paymentMethod: data.paymentMethod,
-    googleFormsLink: data.googleFormsLink,
-    notes: data.notes,
+    googleFormsLink: data.googleFormsLink || null,
+    notes: data.notes || null,
   })
-
   revalidatePath('/expenses')
-  return result
 }
 
-export async function updateExpense(
-  id: number,
-  data: Partial<typeof data>
-) {
-  const userId = await getUserId()
-  
-  await db
-    .update(expenses)
-    .set(data)
-    .where(and(eq(expenses.id, id), eq(expenses.userId, userId)))
-
+export async function updateExpense(id: number, data: {
+  date?: string
+  description?: string
+  category?: string
+  amount?: string
+  paymentMethod?: string
+  googleFormsLink?: string
+  notes?: string
+}) {
+  await db.update(expenses).set({ ...data, updatedAt: new Date() }).where(eq(expenses.id, id))
   revalidatePath('/expenses')
 }
 
 export async function deleteExpense(id: number) {
-  const userId = await getUserId()
-  
-  await db
-    .delete(expenses)
-    .where(and(eq(expenses.id, id), eq(expenses.userId, userId)))
-
+  await db.delete(expenses).where(eq(expenses.id, id))
   revalidatePath('/expenses')
 }
 
-export async function getExpensesByCategory() {
-  const userId = await getUserId()
-  
-  const result = await db
-    .select({
-      category: expenses.category,
-      total: expenses.amount,
-    })
-    .from(expenses)
-    .where(eq(expenses.userId, userId))
-
-  return result
+export async function getExpensesByCategory(monthYear?: string) {
+  const currentMonth = monthYear || new Date().toISOString().slice(0, 7)
+  return db.select({
+    category: expenses.category,
+    total: sql<number>`SUM(CAST(amount AS FLOAT))`,
+    count: sql<number>`COUNT(*)`,
+  })
+  .from(expenses)
+  .where(sql`TO_CHAR(date, 'YYYY-MM') = ${currentMonth}`)
+  .groupBy(expenses.category)
+  .orderBy(desc(sql`SUM(CAST(amount AS FLOAT))`))
 }

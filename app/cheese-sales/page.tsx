@@ -1,60 +1,34 @@
-import { getCheesSales, getSalesStats, getSalesByCustomer, getSalesByProduct } from '@/app/actions/cheese-sales'
+export const dynamic = 'force-dynamic'
+
+import { getCheesSales, getSalesStats } from '@/app/actions/cheese-sales'
 import { CheeseSalesForm } from '@/components/cheese-sales-form'
 import { CheeseSalesList } from '@/components/cheese-sales-list'
-import { CheeseSalesDashboard } from '@/components/cheese-sales-dashboard'
-import Link from 'next/link'
-import { Button } from '@/components/ui/button'
+
+function formatCurrency(n: number) {
+  return new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 }).format(n)
+}
 
 export default async function CheeseSalesPage() {
-  const sales = await getCheesSales()
-  const stats = await getSalesStats()
-  const customerSales = await getSalesByCustomer()
-  const productSales = await getSalesByProduct()
+  const [sales, stats] = await Promise.all([getCheesSales(), getSalesStats()])
+  const totalSales = Number(stats[0]?.totalSales || 0)
+  const txCount = Number(stats[0]?.transactionCount || 0)
 
   return (
-    <main className="min-h-screen bg-background">
-      {/* Header */}
-      <header className="border-b border-border">
-        <div className="container mx-auto px-4 py-6">
-          <div className="flex items-center justify-between">
-            <div>
-              <Link href="/">
-                <h1 className="text-3xl font-bold text-foreground hover:opacity-80">Vania Hub</h1>
-              </Link>
-              <p className="text-muted-foreground">Cheese Sales & Analytics</p>
-            </div>
-            <Link href="/">
-              <Button variant="outline">Back to Dashboard</Button>
-            </Link>
-          </div>
+    <div className="p-6 md:p-8 max-w-5xl mx-auto">
+      <div className="mb-6">
+        <h2 className="text-2xl font-bold text-foreground">Cheese Sales</h2>
+        <p className="text-muted-foreground text-sm mt-1">
+          {txCount} sales this month &mdash; Total: <span className="font-semibold text-orange-600">{formatCurrency(totalSales)}</span>
+        </p>
+      </div>
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div className="lg:col-span-1">
+          <CheeseSalesForm />
         </div>
-      </header>
-
-      {/* Main Content */}
-      <div className="container mx-auto px-4 py-12">
-        {/* Dashboard */}
-        <div className="mb-12">
-          <CheeseSalesDashboard
-            stats={stats}
-            customerSales={customerSales}
-            productSales={productSales}
-            recentSales={sales}
-          />
-        </div>
-
-        {/* Add Form and List */}
-        <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
-          {/* Form */}
-          <div className="lg:col-span-1">
-            <CheeseSalesForm />
-          </div>
-
-          {/* Sales List */}
-          <div className="lg:col-span-3">
-            <CheeseSalesList sales={sales} />
-          </div>
+        <div className="lg:col-span-2">
+          <CheeseSalesList sales={sales} />
         </div>
       </div>
-    </main>
+    </div>
   )
 }

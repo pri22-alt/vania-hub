@@ -1,124 +1,91 @@
-import Link from 'next/link'
-import { Button } from '@/components/ui/button'
-import { Card } from '@/components/ui/card'
+export const dynamic = 'force-dynamic'
 
-export default function DashboardPage() {
+import Link from 'next/link'
+import { getFinancialOverview } from '@/app/actions/analytics'
+import { getDues } from '@/app/actions/dues'
+
+function formatCurrency(amount: number) {
+  return new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 }).format(amount)
+}
+
+const navCards = [
+  { href: '/expenses', label: 'Expenses', desc: 'Track daily spending', color: 'bg-rose-50 border-rose-200', text: 'text-rose-700' },
+  { href: '/income', label: 'Income', desc: 'Record earnings', color: 'bg-emerald-50 border-emerald-200', text: 'text-emerald-700' },
+  { href: '/dues', label: 'Dues & Bills', desc: 'Manage payments', color: 'bg-amber-50 border-amber-200', text: 'text-amber-700' },
+  { href: '/maid', label: 'Maid Attendance', desc: 'Clock in / out', color: 'bg-sky-50 border-sky-200', text: 'text-sky-700' },
+  { href: '/cheese-sales', label: 'Cheese Sales', desc: 'Business revenue', color: 'bg-orange-50 border-orange-200', text: 'text-orange-700' },
+  { href: '/analytics', label: 'Analytics', desc: 'Reports & insights', color: 'bg-violet-50 border-violet-200', text: 'text-violet-700' },
+]
+
+export default async function DashboardPage() {
+  const [overview, allDues] = await Promise.all([
+    getFinancialOverview(),
+    getDues(),
+  ])
+
+  const pending = allDues.filter(d => d.status === 'pending')
+  const net = overview.totalIncome + overview.totalSales - overview.totalExpenses
 
   return (
-    <main className="min-h-screen bg-background">
-      {/* Header */}
-      <header className="border-b border-border">
-        <div className="container mx-auto px-4 py-6">
-          <div className="flex items-center justify-between">
-            <div>
-              <h1 className="text-3xl font-bold text-foreground">Vania Hub</h1>
-              <p className="text-muted-foreground">Home & Business Finance Manager</p>
-            </div>
+    <div className="p-6 md:p-8 max-w-4xl mx-auto">
+      <div className="mb-8">
+        <h2 className="text-2xl font-bold text-foreground">Dashboard</h2>
+        <p className="text-muted-foreground mt-1 text-sm">
+          {new Date().toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })}
+        </p>
+      </div>
 
-          </div>
+      {/* Stats */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-8">
+        <div className="bg-card border border-border rounded-xl p-4">
+          <p className="text-xs text-muted-foreground mb-1">This Month Income</p>
+          <p className="text-lg font-bold text-emerald-600">{formatCurrency(overview.totalIncome)}</p>
         </div>
-      </header>
-
-      {/* Main Content */}
-      <div className="container mx-auto px-4 py-12">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {/* Expenses */}
-          <Card className="p-6 hover:shadow-lg transition-shadow">
-            <div className="flex items-center justify-between mb-4">
-              <h2 className="text-xl font-semibold text-foreground">Expenses</h2>
-              <div className="w-12 h-12 bg-red-100 rounded-lg flex items-center justify-center">
-                <span className="text-2xl">💰</span>
-              </div>
-            </div>
-            <p className="text-sm text-muted-foreground mb-4">
-              Track daily expenses with payment method and categories
-            </p>
-            <Link href="/expenses">
-              <Button className="w-full">Manage Expenses</Button>
-            </Link>
-          </Card>
-
-          {/* Income */}
-          <Card className="p-6 hover:shadow-lg transition-shadow">
-            <div className="flex items-center justify-between mb-4">
-              <h2 className="text-xl font-semibold text-foreground">Income</h2>
-              <div className="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center">
-                <span className="text-2xl">📈</span>
-              </div>
-            </div>
-            <p className="text-sm text-muted-foreground mb-4">
-              Record daily income from cash or bank transfers
-            </p>
-            <Link href="/income">
-              <Button className="w-full">Log Income</Button>
-            </Link>
-          </Card>
-
-          {/* Dues */}
-          <Card className="p-6 hover:shadow-lg transition-shadow">
-            <div className="flex items-center justify-between mb-4">
-              <h2 className="text-xl font-semibold text-foreground">Dues & Bills</h2>
-              <div className="w-12 h-12 bg-yellow-100 rounded-lg flex items-center justify-center">
-                <span className="text-2xl">📋</span>
-              </div>
-            </div>
-            <p className="text-sm text-muted-foreground mb-4">
-              Track bills and dues with calendar view
-            </p>
-            <Link href="/dues">
-              <Button className="w-full">View Dues</Button>
-            </Link>
-          </Card>
-
-          {/* Maid Attendance */}
-          <Card className="p-6 hover:shadow-lg transition-shadow">
-            <div className="flex items-center justify-between mb-4">
-              <h2 className="text-xl font-semibold text-foreground">Maid Attendance</h2>
-              <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
-                <span className="text-2xl">⏱️</span>
-              </div>
-            </div>
-            <p className="text-sm text-muted-foreground mb-4">
-              Track maid attendance with QR code check-in
-            </p>
-            <Link href="/maid">
-              <Button className="w-full">Manage Attendance</Button>
-            </Link>
-          </Card>
-
-          {/* Cheese Sales */}
-          <Card className="p-6 hover:shadow-lg transition-shadow">
-            <div className="flex items-center justify-between mb-4">
-              <h2 className="text-xl font-semibold text-foreground">Cheese Sales</h2>
-              <div className="w-12 h-12 bg-orange-100 rounded-lg flex items-center justify-center">
-                <span className="text-2xl">🧀</span>
-              </div>
-            </div>
-            <p className="text-sm text-muted-foreground mb-4">
-              Manage sales, track customers, generate reports
-            </p>
-            <Link href="/cheese-sales">
-              <Button className="w-full">View Sales</Button>
-            </Link>
-          </Card>
-
-          {/* Budget & Analytics */}
-          <Card className="p-6 hover:shadow-lg transition-shadow">
-            <div className="flex items-center justify-between mb-4">
-              <h2 className="text-xl font-semibold text-foreground">Analytics</h2>
-              <div className="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center">
-                <span className="text-2xl">📊</span>
-              </div>
-            </div>
-            <p className="text-sm text-muted-foreground mb-4">
-              View financial insights and budget status
-            </p>
-            <Link href="/analytics">
-              <Button className="w-full">View Analytics</Button>
-            </Link>
-          </Card>
+        <div className="bg-card border border-border rounded-xl p-4">
+          <p className="text-xs text-muted-foreground mb-1">This Month Expenses</p>
+          <p className="text-lg font-bold text-rose-600">{formatCurrency(overview.totalExpenses)}</p>
+        </div>
+        <div className="bg-card border border-border rounded-xl p-4">
+          <p className="text-xs text-muted-foreground mb-1">Cheese Sales</p>
+          <p className="text-lg font-bold text-orange-600">{formatCurrency(overview.totalSales)}</p>
+        </div>
+        <div className="bg-card border border-border rounded-xl p-4">
+          <p className="text-xs text-muted-foreground mb-1">Net Balance</p>
+          <p className={`text-lg font-bold ${net >= 0 ? 'text-emerald-600' : 'text-rose-600'}`}>{formatCurrency(net)}</p>
         </div>
       </div>
-    </main>
+
+      {/* Nav Cards */}
+      <div className="grid grid-cols-2 md:grid-cols-3 gap-3 mb-6">
+        {navCards.map((card) => (
+          <Link key={card.href} href={card.href}
+            className={`rounded-xl border p-4 ${card.color} hover:shadow-md transition-all hover:-translate-y-0.5`}>
+            <p className={`font-semibold text-sm ${card.text}`}>{card.label}</p>
+            <p className="text-xs text-muted-foreground mt-0.5">{card.desc}</p>
+          </Link>
+        ))}
+      </div>
+
+      {/* Pending Dues */}
+      {pending.length > 0 && (
+        <div className="bg-amber-50 border border-amber-200 rounded-xl p-4">
+          <div className="flex items-center justify-between mb-3">
+            <p className="font-semibold text-amber-800 text-sm">{pending.length} Pending Due{pending.length > 1 ? 's' : ''}</p>
+            <Link href="/dues" className="text-xs text-amber-600 hover:underline">View all</Link>
+          </div>
+          <div className="flex flex-col gap-2">
+            {pending.slice(0, 4).map(due => (
+              <div key={due.id} className="flex items-center justify-between text-sm">
+                <span className="text-amber-700 truncate">{due.description}</span>
+                <span className="font-semibold text-amber-800 ml-2 shrink-0">{formatCurrency(Number(due.amount))}</span>
+              </div>
+            ))}
+          </div>
+          {pending.length > 4 && (
+            <p className="text-xs text-amber-600 mt-2">+{pending.length - 4} more</p>
+          )}
+        </div>
+      )}
+    </div>
   )
 }
