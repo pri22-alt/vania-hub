@@ -30,7 +30,7 @@ export default async function DashboardPage() {
         <div className="p-4 md:p-8 max-w-6xl mx-auto">
           <h2 className="text-2xl md:text-3xl font-bold text-foreground">Dashboard</h2>
           <p className="text-muted-foreground mt-1 text-xs md:text-sm">
-            {new Date().toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })}
+            {new Date().toLocaleDateString('ms-MY', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })}
           </p>
         </div>
       </div>

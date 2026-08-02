@@ -9,6 +9,9 @@ import type { CalendarEvent } from '@/app/actions/calendar'
 import moment from 'moment'
 import 'react-big-calendar/lib/css/react-big-calendar.css'
 
+// Set Malaysia timezone (UTC+8)
+moment.tz.setDefault('Asia/Kuala_Lumpur')
+
 const localizer = momentLocalizer(moment)
 
 interface CalendarViewProps {

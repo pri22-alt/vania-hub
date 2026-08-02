@@ -9,30 +9,34 @@ export function formatRM(amount: number | string): string {
   }).format(num)
 }
 
-// Get date ranges for filtering
+// Get date ranges for filtering (Malaysia timezone)
 export function getDateRanges() {
-  const today = new Date()
-  const year = today.getFullYear()
-  const month = today.getMonth()
+  // Get Malaysia time
+  const now = new Date()
+  const malaysiaNow = new Date(now.getTime() + (now.getTimezoneOffset() * 60 * 1000) + (8 * 60 * 60 * 1000))
+  
+  const year = malaysiaNow.getFullYear()
+  const month = malaysiaNow.getMonth()
+  const date = malaysiaNow.getDate()
 
   return {
     // Year-to-date: Jan 1 to today
     ytd: {
       start: new Date(year, 0, 1),
-      end: today,
+      end: malaysiaNow,
       label: 'Year-to-Date',
     },
     // Month-to-date: 1st of month to today
     mtd: {
       start: new Date(year, month, 1),
-      end: today,
+      end: malaysiaNow,
       label: 'Month-to-Date',
     },
     // Current month
     currentMonth: {
       start: new Date(year, month, 1),
       end: new Date(year, month + 1, 0),
-      label: `${today.toLocaleDateString('ms-MY', { month: 'long', year: 'numeric' })}`,
+      label: `${malaysiaNow.toLocaleDateString('ms-MY', { month: 'long', year: 'numeric' })}`,
     },
     // Last month
     lastMonth: {
@@ -42,20 +46,20 @@ export function getDateRanges() {
     },
     // Last 30 days
     last30Days: {
-      start: new Date(today.getTime() - 30 * 24 * 60 * 60 * 1000),
-      end: today,
+      start: new Date(malaysiaNow.getTime() - 30 * 24 * 60 * 60 * 1000),
+      end: malaysiaNow,
       label: 'Last 30 Days',
     },
     // Last 7 days
     last7Days: {
-      start: new Date(today.getTime() - 7 * 24 * 60 * 60 * 1000),
-      end: today,
+      start: new Date(malaysiaNow.getTime() - 7 * 24 * 60 * 60 * 1000),
+      end: malaysiaNow,
       label: 'Last 7 Days',
     },
     // Today
     today: {
-      start: new Date(year, month, today.getDate()),
-      end: new Date(year, month, today.getDate(), 23, 59, 59),
+      start: new Date(year, month, date),
+      end: new Date(year, month, date, 23, 59, 59),
       label: 'Today',
     },
   }
