@@ -121,13 +121,9 @@ export default async function VirmanisSalesPage() {
             <span className="text-lg font-semibold text-foreground">Generate Invoices</span>
           </AccordionTrigger>
           <AccordionContent className="px-4 pt-4 pb-6">
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-              <div className="lg:col-span-1">
-                <InvoiceGenerator clients={clients} settings={companySettings} />
-              </div>
-              <div className="lg:col-span-2">
-                <InvoiceList invoices={invoices} companySettings={companySettings} />
-              </div>
+            <div className="space-y-6">
+              <InvoiceGenerator clients={clients} settings={companySettings} />
+              <InvoiceList invoices={invoices} companySettings={companySettings} />
             </div>
           </AccordionContent>
         </AccordionItem>
