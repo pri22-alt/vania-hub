@@ -15,7 +15,10 @@ export async function addRecurringBill(data: {
   description: string
   amount: string
   category: string
-  dayOfMonth: number
+  recurringType: string
+  startDate: string
+  dayOfMonth?: number
+  customDates?: string[]
   notes?: string
 }) {
   await db.insert(recurringBills).values({
@@ -23,7 +26,10 @@ export async function addRecurringBill(data: {
     description: data.description,
     amount: data.amount,
     category: data.category,
-    dayOfMonth: data.dayOfMonth,
+    recurringType: data.recurringType,
+    startDate: data.startDate,
+    dayOfMonth: data.dayOfMonth || null,
+    customDates: data.customDates && data.customDates.length > 0 ? JSON.stringify(data.customDates) : null,
     notes: data.notes || null,
     isActive: true,
   })
@@ -34,14 +40,25 @@ export async function updateRecurringBill(id: number, data: {
   description?: string
   amount?: string
   category?: string
-  dayOfMonth?: number
+  recurringType?: string
+  startDate?: string
+  dayOfMonth?: number | null
+  customDates?: string[]
   isActive?: boolean
   notes?: string
 }) {
-  await db.update(recurringBills).set({
-    ...data,
-    updatedAt: new Date(),
-  }).where(eq(recurringBills.id, id))
+  const updateData: any = { updatedAt: new Date() }
+  if (data.description) updateData.description = data.description
+  if (data.amount) updateData.amount = data.amount
+  if (data.category) updateData.category = data.category
+  if (data.recurringType) updateData.recurringType = data.recurringType
+  if (data.startDate) updateData.startDate = data.startDate
+  if (data.dayOfMonth !== undefined) updateData.dayOfMonth = data.dayOfMonth
+  if (data.customDates !== undefined) updateData.customDates = data.customDates && data.customDates.length > 0 ? JSON.stringify(data.customDates) : null
+  if (data.isActive !== undefined) updateData.isActive = data.isActive
+  if (data.notes !== undefined) updateData.notes = data.notes
+
+  await db.update(recurringBills).set(updateData).where(eq(recurringBills.id, id))
   revalidatePath('/dues')
 }
 

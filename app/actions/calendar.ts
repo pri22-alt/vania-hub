@@ -76,12 +76,15 @@ export async function getCalendarEvents(startDate: Date, endDate: Date): Promise
           description: recurringBills.description,
           amount: recurringBills.amount,
           category: recurringBills.category,
+          recurringType: recurringBills.recurringType,
+          startDate: recurringBills.startDate,
           dayOfMonth: recurringBills.dayOfMonth,
+          customDates: recurringBills.customDates,
           isActive: recurringBills.isActive,
         })
         .from(recurringBills)
         .where(sql`${recurringBills.userid} = ${SHARED_USER_ID} AND ${recurringBills.isactive} = true`)
-        .orderBy(recurringBills.dayOfMonth),
+        .orderBy(recurringBills.recurringType),
     ])
 
     const events: CalendarEvent[] = []
@@ -144,38 +147,99 @@ export async function getCalendarEvents(startDate: Date, endDate: Date): Promise
       })
     })
 
-    // Process recurring bills - generate events for each month in the date range
+    // Process recurring bills - generate events based on recurrence type
     recurringList.forEach((bill: any) => {
       if (!bill.isActive) return
       
-      // Generate recurring bill events for each month in the range
-      const currentDate = new Date(startDate)
-      while (currentDate <= endDate) {
-        const year = currentDate.getFullYear()
-        const month = currentDate.getMonth()
-        
-        // Calculate the actual day (handle months with fewer days)
-        const lastDay = new Date(year, month + 1, 0).getDate()
-        const billDay = Math.min(bill.dayOfMonth, lastDay)
-        
-        const eventDate = new Date(year, month, billDay)
-        
-        // Only include if within the date range
-        if (eventDate >= startDate && eventDate <= endDate) {
-          const dateStr = eventDate.toISOString().split('T')[0]
-          events.push({
-            id: `recurring-${bill.id}-${year}-${month}-${billDay}`,
-            title: `Bill: ${bill.category || bill.description}`,
-            start: new Date(`${dateStr}T00:00:00Z`),
-            end: new Date(`${dateStr}T23:59:59Z`),
-            type: 'due',
-            amount: bill.amount?.toString(),
-            description: bill.description,
-          })
+      const billStartDate = new Date(bill.startDate)
+      const recurringType = bill.recurringType || 'monthly'
+      
+      if (recurringType === 'monthly') {
+        // Generate monthly recurring events
+        const currentDate = new Date(startDate)
+        while (currentDate <= endDate) {
+          const year = currentDate.getFullYear()
+          const month = currentDate.getMonth()
+          
+          // Calculate the actual day (handle months with fewer days)
+          const lastDay = new Date(year, month + 1, 0).getDate()
+          const billDay = Math.min(bill.dayOfMonth || billStartDate.getDate(), lastDay)
+          
+          const eventDate = new Date(year, month, billDay)
+          
+          // Only include if within the date range and after start date
+          if (eventDate >= startDate && eventDate <= endDate && eventDate >= billStartDate) {
+            const dateStr = eventDate.toISOString().split('T')[0]
+            events.push({
+              id: `recurring-${bill.id}-${year}-${month}-${billDay}`,
+              title: `Bill: ${bill.category || bill.description}`,
+              start: new Date(`${dateStr}T00:00:00Z`),
+              end: new Date(`${dateStr}T23:59:59Z`),
+              type: 'due',
+              amount: bill.amount?.toString(),
+              description: bill.description,
+            })
+          }
+          
+          currentDate.setMonth(currentDate.getMonth() + 1)
         }
-        
-        // Move to next month
-        currentDate.setMonth(currentDate.getMonth() + 1)
+      } else if (recurringType === 'weekly') {
+        // Generate weekly recurring events (every 7 days from start date)
+        let currentDate = new Date(billStartDate)
+        while (currentDate <= endDate) {
+          if (currentDate >= startDate) {
+            const dateStr = currentDate.toISOString().split('T')[0]
+            events.push({
+              id: `recurring-${bill.id}-${dateStr}`,
+              title: `Bill: ${bill.category || bill.description}`,
+              start: new Date(`${dateStr}T00:00:00Z`),
+              end: new Date(`${dateStr}T23:59:59Z`),
+              type: 'due',
+              amount: bill.amount?.toString(),
+              description: bill.description,
+            })
+          }
+          currentDate.setDate(currentDate.getDate() + 7)
+        }
+      } else if (recurringType === 'biweekly') {
+        // Generate biweekly recurring events (every 14 days from start date)
+        let currentDate = new Date(billStartDate)
+        while (currentDate <= endDate) {
+          if (currentDate >= startDate) {
+            const dateStr = currentDate.toISOString().split('T')[0]
+            events.push({
+              id: `recurring-${bill.id}-${dateStr}`,
+              title: `Bill: ${bill.category || bill.description}`,
+              start: new Date(`${dateStr}T00:00:00Z`),
+              end: new Date(`${dateStr}T23:59:59Z`),
+              type: 'due',
+              amount: bill.amount?.toString(),
+              description: bill.description,
+            })
+          }
+          currentDate.setDate(currentDate.getDate() + 14)
+        }
+      } else if (recurringType === 'custom' && bill.customDates) {
+        // Generate events for custom dates
+        try {
+          const customDates = JSON.parse(bill.customDates)
+          customDates.forEach((dateStr: string) => {
+            const eventDate = new Date(dateStr)
+            if (eventDate >= startDate && eventDate <= endDate) {
+              events.push({
+                id: `recurring-${bill.id}-${dateStr}`,
+                title: `Bill: ${bill.category || bill.description}`,
+                start: new Date(`${dateStr}T00:00:00Z`),
+                end: new Date(`${dateStr}T23:59:59Z`),
+                type: 'due',
+                amount: bill.amount?.toString(),
+                description: bill.description,
+              })
+            }
+          })
+        } catch (e) {
+          console.error('[v0] Failed to parse custom dates for bill', bill.id)
+        }
       }
     })
 
