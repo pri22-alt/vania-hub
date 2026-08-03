@@ -1,7 +1,9 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { addExpense } from '@/app/actions/expenses'
+import { getStockStatus } from '@/app/actions/inventory'
+import { recordMovement } from '@/app/actions/inventory'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -10,7 +12,7 @@ import { FileUpload } from '@/components/file-upload'
 
 const CATEGORY_TYPE = ['household', 'business']
 const HOUSEHOLD_SUBCATEGORIES = ['Groceries', 'Utilities', 'Transport', 'Healthcare', 'Education', 'Entertainment', 'Other']
-const BUSINESS_SUBCATEGORIES = ['Entertainment', 'Transport', 'Petrol', 'Supplies', 'Utilities', 'Other']
+const BUSINESS_SUBCATEGORIES = ['Cheese Purchase', 'Entertainment', 'Transport', 'Petrol', 'Supplies', 'Utilities', 'Other']
 
 export function ExpenseForm() {
   const [formData, setFormData] = useState({
@@ -24,16 +26,33 @@ export function ExpenseForm() {
     googleFormsLink: '',
     remarks: '',
     notes: '',
+    productId: '',
+    quantity: '',
     driveFileId: '',
     driveFileUrl: '',
   })
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [success, setSuccess] = useState(false)
+  const [products, setProducts] = useState<any[]>([])
+
+  useEffect(() => {
+    async function loadProducts() {
+      try {
+        const status = await getStockStatus()
+        setProducts(status.map((s: any) => ({ id: s.productId, name: s.productName })))
+      } catch (err) {
+        console.error('Failed to load products:', err)
+      }
+    }
+    loadProducts()
+  }, [])
 
   const subcategories = formData.categoryType === 'business' 
     ? BUSINESS_SUBCATEGORIES 
     : HOUSEHOLD_SUBCATEGORIES
+  
+  const isCheesePurchase = formData.subcategory === 'Cheese Purchase'
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -42,10 +61,24 @@ export function ExpenseForm() {
     setLoading(true)
 
     try {
-      await addExpense({
+      const expenseData = {
         ...formData,
         category: formData.categoryType === 'business' ? 'Virmanis United' : formData.category,
-      })
+      }
+      
+      // If Cheese Purchase, also record inventory movement
+      if (isCheesePurchase && formData.productId && formData.quantity) {
+        await recordMovement({
+          productId: parseInt(formData.productId),
+          movementType: 'purchase',
+          quantity: parseFloat(formData.quantity),
+          movementDate: formData.date,
+          referenceType: 'expense',
+          notes: `Purchased via expense: ${formData.description}`,
+        })
+      }
+      
+      await addExpense(expenseData)
       setSuccess(true)
       setFormData({
         date: new Date().toISOString().split('T')[0],
@@ -58,6 +91,8 @@ export function ExpenseForm() {
         googleFormsLink: '',
         remarks: '',
         notes: '',
+        productId: '',
+        quantity: '',
         driveFileId: '',
         driveFileUrl: '',
       })
@@ -154,6 +189,39 @@ export function ExpenseForm() {
             />
           </div>
         </div>
+
+        {/* Cheese Purchase Fields */}
+        {isCheesePurchase && (
+          <div className="grid grid-cols-2 gap-4 p-4 bg-amber-50 rounded-lg">
+            <div className="flex flex-col gap-2 col-span-2">
+              <Label htmlFor="productId">Product</Label>
+              <select
+                id="productId"
+                value={formData.productId}
+                onChange={(e) => setFormData({ ...formData, productId: e.target.value })}
+                className="border border-input rounded-md px-3 py-2 text-sm"
+                required={isCheesePurchase}
+              >
+                <option value="">Select product...</option>
+                {products.map((p: any) => (
+                  <option key={p.id} value={p.id}>{p.name}</option>
+                ))}
+              </select>
+            </div>
+            <div className="flex flex-col gap-2">
+              <Label htmlFor="quantity">Quantity Purchased</Label>
+              <Input
+                id="quantity"
+                type="number"
+                placeholder="0.00"
+                step="0.01"
+                value={formData.quantity}
+                onChange={(e) => setFormData({ ...formData, quantity: e.target.value })}
+                required={isCheesePurchase}
+              />
+            </div>
+          </div>
+        )}
 
         {/* Payment Method */}
         <div className="flex flex-col gap-2">
