@@ -1,7 +1,7 @@
 'use server'
 
 import { db } from '@/lib/db'
-import { invoices, invoiceLineItems, companySettings } from '@/lib/db/schema'
+import { invoices, invoiceLineItems, companySettings, orders, orderItems } from '@/lib/db/schema'
 import { eq, and, desc } from 'drizzle-orm'
 import { revalidatePath } from 'next/cache'
 
@@ -184,13 +184,56 @@ export async function updateInvoiceDriveLink(invoiceId: number, driveFileId: str
 }
 
 export async function deleteInvoice(invoiceId: number) {
-  // Delete line items first
-  await db.delete(invoiceLineItems).where(eq(invoiceLineItems.invoiceId, invoiceId))
+  await db.delete(invoices).where(eq(invoices.id, invoiceId))
+  revalidatePath('/virmanis')
+}
 
-  // Delete invoice
+// Create invoice from an order (auto-populate line items)
+export async function createInvoiceFromOrder(orderId: number) {
+  // Get order
+  const order = await db
+    .select()
+    .from(orders)
+    .where(eq(orders.id, orderId))
+    .limit(1)
+
+  if (!order[0]) throw new Error('Order not found')
+
+  // Get order items
+  const items = await db
+    .select()
+    .from(orderItems)
+    .where(eq(orderItems.orderId, orderId))
+
+  // Prepare line items for invoice
+  const lineItems = items.map(item => ({
+    description: item.productName,
+    quantity: item.quantity.toString(),
+    unitPrice: item.unitPrice.toString(),
+    amount: item.amount.toString(),
+  }))
+
+  // Create invoice with order data
+  const invoiceData = {
+    clientId: order[0].clientId || 0,
+    clientName: order[0].clientName,
+    invoiceDate: new Date().toISOString().split('T')[0],
+    dueDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0], // 30 days default
+    subtotal: order[0].total.toString(),
+    taxAmount: '0',
+    totalAmount: order[0].total.toString(),
+    notes: `Generated from Order: ${order[0].orderNumber}`,
+    lineItems,
+  }
+
+  const newInvoice = await createInvoice(invoiceData)
+
+  // Link invoice to order
   await db
-    .delete(invoices)
-    .where(and(eq(invoices.id, invoiceId), eq(invoices.userId, SHARED_USER_ID)))
+    .update(orders)
+    .set({ invoiceId: newInvoice.id })
+    .where(eq(orders.id, orderId))
 
   revalidatePath('/virmanis')
+  return newInvoice
 }

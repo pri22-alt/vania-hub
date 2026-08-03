@@ -4,6 +4,7 @@ import { useState } from 'react'
 import { Card } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { packOrder, completeOrder, cancelOrder } from '@/app/actions/orders'
+import { createInvoiceFromOrder } from '@/app/actions/invoices'
 import { formatRM } from '@/lib/utils/currency'
 
 export function OrdersClient({ initialOrders }: any) {
@@ -47,6 +48,19 @@ export function OrdersClient({ initialOrders }: any) {
       window.location.reload()
     } catch (err) {
       alert(`Error: ${err instanceof Error ? err.message : 'Failed to cancel order'}`)
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const handleGenerateInvoice = async (orderId: number) => {
+    setLoading(true)
+    try {
+      const invoice = await createInvoiceFromOrder(orderId)
+      alert(`Invoice #${invoice.invoiceNumber} generated! Navigate to Invoices to view and edit.`)
+      window.location.reload()
+    } catch (err) {
+      alert(`Error: ${err instanceof Error ? err.message : 'Failed to generate invoice'}`)
     } finally {
       setLoading(false)
     }
@@ -185,20 +199,27 @@ export function OrdersClient({ initialOrders }: any) {
             </Card>
           ) : (
             completedOrders.map((order: any) => (
-              <Card key={order.id} className="p-4 opacity-75">
-                <div className="flex justify-between items-start">
+              <Card key={order.id} className="p-4">
+                <div className="flex justify-between items-start mb-3">
                   <div>
-                    <p className="font-mono text-sm text-muted-foreground">{order.orderNumber}</p>
-                    <p className="text-lg font-semibold">{order.clientName}</p>
-                    <p className="text-sm text-muted-foreground">{order.orderDate}</p>
+                    <p className="font-semibold">{order.orderNumber}</p>
+                    <p className="text-sm text-muted-foreground">{order.clientName}</p>
+                    {order.invoiceId && <p className="text-xs text-blue-600">Invoice: {order.invoiceId}</p>}
                   </div>
-                  <div className="text-right">
-                    <p className="text-2xl font-bold">RM {formatRM(order.total)}</p>
-                    <span className={`inline-block mt-2 px-3 py-1 rounded text-xs font-semibold border ${getStatusColor(order.status)}`}>
-                      {order.status.toUpperCase()}
-                    </span>
-                  </div>
+                  <span className="text-xs bg-green-100 text-green-800 px-2 py-1 rounded">Completed</span>
                 </div>
+                <p className="text-sm text-muted-foreground">Total: RM {formatRM(order.total)}</p>
+                <p className="text-sm text-muted-foreground">Completed: {new Date(order.completedAt).toLocaleDateString()}</p>
+                {!order.invoiceId && (
+                  <Button
+                    size="sm"
+                    onClick={() => handleGenerateInvoice(order.id)}
+                    disabled={loading}
+                    className="mt-3 w-full"
+                  >
+                    Generate Invoice
+                  </Button>
+                )}
               </Card>
             ))
           )}
