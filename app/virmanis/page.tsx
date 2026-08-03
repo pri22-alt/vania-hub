@@ -4,6 +4,7 @@ import { getSalesStats, getSalesByCustomer, getSalesByProduct, getVirmanisSales 
 import { getVirmaisClients, checkAndInactivateStaleClients } from '@/app/actions/virmanis-clients'
 import { getExpenses } from '@/app/actions/expenses'
 import { getCompanySettings, getInvoices } from '@/app/actions/invoices'
+import { getOrders } from '@/app/actions/orders'
 import { VirmaisClientsForm } from '@/components/virmanis-clients-form'
 import { VirmaisClientsList } from '@/components/virmanis-clients-list'
 import { CompanySettingsForm } from '@/components/company-settings-form'
@@ -11,6 +12,7 @@ import { InvoiceGenerator } from '@/components/invoice-generator'
 import { InvoiceList } from '@/components/invoice-list'
 import { VirmanisSalesForm } from '@/components/virmanis-form'
 import { VirmanisAnalytics } from '@/components/virmanis-analytics'
+import { OrdersClient } from '@/components/orders-client'
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion'
 import { formatRM } from '@/lib/utils/currency'
 
@@ -21,7 +23,7 @@ export default async function VirmanisSalesPage() {
   const startDate = new Date(now.getFullYear(), now.getMonth(), 1).toISOString().split('T')[0]
   const endDate = new Date(now.getFullYear(), now.getMonth() + 1, 0).toISOString().split('T')[0]
 
-  const [sales, stats, customerSales, productSales, clients, expenses, companySettings, invoices] = await Promise.all([
+  const [sales, stats, customerSales, productSales, clients, expenses, companySettings, invoices, orders] = await Promise.all([
     getVirmanisSales(startDate, endDate),
     getSalesStats(startDate, endDate),
     getSalesByCustomer(startDate, endDate),
@@ -30,6 +32,7 @@ export default async function VirmanisSalesPage() {
     getExpenses(startDate, endDate),
     getCompanySettings(),
     getInvoices(),
+    getOrders(),
   ])
 
   return (
@@ -112,6 +115,16 @@ export default async function VirmanisSalesPage() {
                 <VirmaisClientsList clients={clients} />
               </div>
             </div>
+          </AccordionContent>
+        </AccordionItem>
+
+        {/* Orders */}
+        <AccordionItem value="orders" className="border border-border rounded-lg">
+          <AccordionTrigger className="px-4 hover:no-underline hover:bg-muted/50">
+            <span className="text-lg font-semibold text-foreground">Order Management</span>
+          </AccordionTrigger>
+          <AccordionContent className="px-4 pt-4 pb-6">
+            <OrdersClient initialOrders={orders} />
           </AccordionContent>
         </AccordionItem>
 

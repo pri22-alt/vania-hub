@@ -12,6 +12,7 @@ const navItems = [
   { href: '/dues', label: 'Dues & Bills', icon: '⊙' },
   { href: '/budgets', label: 'Budgets', icon: '💰' },
   { href: '/savings', label: 'Savings', icon: '🏦' },
+  { href: '/inventory', label: 'Inventory', icon: '📦' },
   { href: '/maid', label: 'Maid', icon: '◈' },
   { href: '/virmanis', label: 'Virmanis United', icon: '◉' },
   { href: '/analytics', label: 'Analytics', icon: '◎' },
