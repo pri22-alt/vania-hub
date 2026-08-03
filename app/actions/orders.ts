@@ -4,6 +4,7 @@ import { db } from '@/lib/db'
 import { orders, orderItems, inventoryMovements, products } from '@/lib/db/schema'
 import { and, eq, desc } from 'drizzle-orm'
 import { revalidatePath } from 'next/cache'
+import { addVirmanisSale } from './virmanis'
 
 const SHARED_USER_ID = 'family-hub'
 
@@ -191,4 +192,78 @@ export async function getOrderDetail(orderId: number) {
     ...order,
     items,
   }
+}
+
+// Quick sale: creates auto-completed order, deducts inventory, and records sale
+export async function createQuickSale(data: {
+  date: string
+  customerName: string
+  productId: number
+  productName: string
+  quantity: number
+  unitPrice: number
+  totalAmount: number
+  paymentMethod: string
+  remarks?: string
+  notes?: string
+}) {
+  const now = new Date()
+  
+  // Create auto-completed order
+  const dateStr = now.toISOString().split('T')[0].replace(/-/g, '')
+  const random = Math.floor(Math.random() * 10000)
+  const orderNumber = `ORD-${dateStr}-${random.toString().padStart(5, '0')}`
+
+  const [order] = await db
+    .insert(orders)
+    .values({
+      userId: SHARED_USER_ID,
+      orderNumber,
+      clientName: data.customerName,
+      status: 'completed',
+      orderDate: data.date,
+      total: data.totalAmount,
+      completedAt: now,
+      notes: data.notes || null,
+    })
+    .returning()
+
+  // Insert order item
+  await db.insert(orderItems).values({
+    orderId: order.id,
+    productId: data.productId,
+    productName: data.productName,
+    quantity: data.quantity,
+    unitPrice: data.unitPrice,
+    amount: data.totalAmount,
+  })
+
+  // Deduct inventory
+  await db.insert(inventoryMovements).values({
+    userId: SHARED_USER_ID,
+    productId: data.productId,
+    movementType: 'sale',
+    quantity: -data.quantity,
+    movementDate: data.date,
+    referenceType: 'order',
+    referenceId: order.id,
+    notes: `Quick sale to ${data.customerName}`,
+  })
+
+  // Record sale in virmanis_sales
+  await addVirmanisSale({
+    date: data.date,
+    customerName: data.customerName,
+    productName: data.productName,
+    quantity: data.quantity.toString(),
+    unitPrice: data.unitPrice.toString(),
+    totalAmount: data.totalAmount.toString(),
+    paymentMethod: data.paymentMethod as any,
+    remarks: data.remarks || '',
+    notes: `Order: ${orderNumber}`,
+  })
+
+  revalidatePath('/virmanis')
+  revalidatePath('/inventory')
+  return order
 }

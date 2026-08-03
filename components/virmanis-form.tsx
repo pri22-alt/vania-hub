@@ -2,6 +2,8 @@
 
 import { useState, useEffect } from 'react'
 import { addVirmanisSale } from '@/app/actions/virmanis'
+import { getStockStatus } from '@/app/actions/inventory'
+import { createQuickSale } from '@/app/actions/orders'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -11,6 +13,7 @@ export function VirmanisSalesForm() {
   const [formData, setFormData] = useState({
     date: new Date().toISOString().split('T')[0],
     customerName: '',
+    productId: '',
     productName: '',
     quantity: '',
     unitPrice: '',
@@ -22,6 +25,21 @@ export function VirmanisSalesForm() {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [success, setSuccess] = useState(false)
+  const [products, setProducts] = useState<any[]>([])
+  const [useQuickSale, setUseQuickSale] = useState(true) // Toggle between quick-sale and manual
+
+  // Load products on mount
+  useEffect(() => {
+    async function loadProducts() {
+      try {
+        const status = await getStockStatus()
+        setProducts(status.map((s: any) => ({ id: s.productId, name: s.productName, unitPrice: s.productUnitPrice || 0 })))
+      } catch (err) {
+        console.error('Failed to load products:', err)
+      }
+    }
+    loadProducts()
+  }, [])
 
   // Auto-calculate total amount
   useEffect(() => {
@@ -31,6 +49,17 @@ export function VirmanisSalesForm() {
     }
   }, [formData.quantity, formData.unitPrice])
 
+  // Set unit price when product is selected
+  const handleProductChange = (productId: string) => {
+    const product = products.find(p => p.id === Number(productId))
+    setFormData(prev => ({
+      ...prev,
+      productId,
+      productName: product?.name || '',
+      unitPrice: product?.unitPrice?.toString() || '',
+    }))
+  }
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setError(null)
@@ -38,11 +67,40 @@ export function VirmanisSalesForm() {
     setLoading(true)
 
     try {
-      await addVirmanisSale(formData)
+      if (useQuickSale && formData.productId) {
+        // Quick sale: creates auto-completed order + deducts inventory + records sale
+        await createQuickSale({
+          date: formData.date,
+          customerName: formData.customerName,
+          productId: parseInt(formData.productId),
+          productName: formData.productName,
+          quantity: parseFloat(formData.quantity),
+          unitPrice: parseFloat(formData.unitPrice),
+          totalAmount: parseFloat(formData.totalAmount),
+          paymentMethod: formData.paymentMethod,
+          remarks: formData.remarks,
+          notes: formData.notes,
+        })
+      } else {
+        // Manual sale: just records sale without inventory deduction (for manual entry)
+        await addVirmanisSale({
+          date: formData.date,
+          customerName: formData.customerName,
+          productName: formData.productName,
+          quantity: formData.quantity,
+          unitPrice: formData.unitPrice,
+          totalAmount: formData.totalAmount,
+          paymentMethod: formData.paymentMethod,
+          remarks: formData.remarks,
+          notes: formData.notes,
+        })
+      }
+      
       setSuccess(true)
       setFormData({
         date: new Date().toISOString().split('T')[0],
         customerName: '',
+        productId: '',
         productName: '',
         quantity: '',
         unitPrice: '',
@@ -89,18 +147,58 @@ export function VirmanisSalesForm() {
           />
         </div>
 
-        {/* Product Name */}
-        <div className="flex flex-col gap-2">
-          <Label htmlFor="productName">Product Name</Label>
-          <Input
-            id="productName"
-            type="text"
-            placeholder="e.g., Cheddar, Gouda, Mozzarella"
-            value={formData.productName}
-            onChange={(e) => setFormData({ ...formData, productName: e.target.value })}
-            required
-          />
+        {/* Sale Type Toggle */}
+        <div className="flex gap-2 mb-2">
+          <label className="flex items-center gap-2 cursor-pointer">
+            <input
+              type="radio"
+              checked={useQuickSale}
+              onChange={() => setUseQuickSale(true)}
+              className="w-4 h-4"
+            />
+            <span className="text-sm">Quick Sale (deducts inventory)</span>
+          </label>
+          <label className="flex items-center gap-2 cursor-pointer">
+            <input
+              type="radio"
+              checked={!useQuickSale}
+              onChange={() => setUseQuickSale(false)}
+              className="w-4 h-4"
+            />
+            <span className="text-sm">Manual Entry (no inventory)</span>
+          </label>
         </div>
+
+        {/* Product */}
+        {useQuickSale ? (
+          <div className="flex flex-col gap-2">
+            <Label htmlFor="productId">Product</Label>
+            <select
+              id="productId"
+              value={formData.productId}
+              onChange={(e) => handleProductChange(e.target.value)}
+              className="border border-input rounded-md px-3 py-2 text-sm"
+              required={useQuickSale}
+            >
+              <option value="">Select product...</option>
+              {products.map((p: any) => (
+                <option key={p.id} value={p.id}>{p.name}</option>
+              ))}
+            </select>
+          </div>
+        ) : (
+          <div className="flex flex-col gap-2">
+            <Label htmlFor="productName">Product Name</Label>
+            <Input
+              id="productName"
+              type="text"
+              placeholder="e.g., Cheddar, Gouda, Mozzarella"
+              value={formData.productName}
+              onChange={(e) => setFormData({ ...formData, productName: e.target.value })}
+              required={!useQuickSale}
+            />
+          </div>
+        )}
 
         {/* Quantity */}
         <div className="flex flex-col gap-2">
