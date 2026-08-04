@@ -1,0 +1,18 @@
+import { ProductsClient } from '@/components/products-client'
+
+export const metadata = {
+  title: 'Products Catalog',
+  description: 'Manage your product inventory catalog',
+}
+
+export default function ProductsPage() {
+  return (
+    <main className="min-h-screen bg-background">
+      <div className="container mx-auto px-4 py-8">
+        <h1 className="text-4xl font-bold text-foreground mb-2">Products Catalog</h1>
+        <p className="text-muted-foreground mb-8">Add and manage products for sales and inventory tracking</p>
+        <ProductsClient />
+      </div>
+    </main>
+  )
+}
