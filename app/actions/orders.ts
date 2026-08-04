@@ -5,6 +5,7 @@ import { orders, orderItems, inventoryMovements, products } from '@/lib/db/schem
 import { and, eq, desc } from 'drizzle-orm'
 import { revalidatePath } from 'next/cache'
 import { addVirmanisSale } from './virmanis'
+import { addIncome } from './income'
 
 const SHARED_USER_ID = 'family-hub'
 
@@ -263,7 +264,21 @@ export async function createQuickSale(data: {
     notes: `Order: ${orderNumber}`,
   })
 
+  // Auto-create income entry for the cheese sale
+  await addIncome({
+    date: data.date,
+    description: `Cheese Sale: ${data.productName} from ${data.customerName}`,
+    categoryType: 'business',
+    category: 'Virmanis United',
+    subcategory: 'Cheese Sales',
+    amount: data.totalAmount.toString(),
+    source: 'Cheese Sale',
+    remarks: `${data.quantity} ${data.productName} @ RM ${data.unitPrice} each`,
+    notes: `Order: ${orderNumber}`,
+  })
+
   revalidatePath('/virmanis')
   revalidatePath('/inventory')
+  revalidatePath('/income')
   return order
 }

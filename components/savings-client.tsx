@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { formatRM } from '@/lib/utils/currency'
-import { setSavingsGoal, recordSavings, getSavingsRecords } from '@/app/actions/savings'
+import { setSavingsGoal, recordSavings, getSavingsRecords, updateSavingsRecord, deleteSavingsRecord } from '@/app/actions/savings'
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts'
 
 export function SavingsClient({ initialData }: any) {
@@ -22,6 +22,8 @@ export function SavingsClient({ initialData }: any) {
   const [records, setRecords] = useState<any[]>([])
   const [loading, setLoading] = useState(false)
   const [showRecordForm, setShowRecordForm] = useState(false)
+  const [editingId, setEditingId] = useState<string | null>(null)
+  const [editForm, setEditForm] = useState<any>(null)
 
   const currentMonthData = data.monthlySavings?.[0]
 
@@ -60,6 +62,46 @@ export function SavingsClient({ initialData }: any) {
     setSelectedMonth(month)
     const newRecords = await import('@/app/actions/savings').then((m) => m.getSavingsRecords(month))
     setRecords(newRecords)
+  }
+
+  const handleEditRecord = (record: any) => {
+    setEditingId(record.id)
+    setEditForm(record)
+  }
+
+  const handleSaveEdit = async () => {
+    if (!editingId || !editForm) return
+    setLoading(true)
+    try {
+      await updateSavingsRecord(selectedMonth, editingId, {
+        amount: parseFloat(editForm.amount),
+        date: editForm.date,
+        location: editForm.location,
+        notes: editForm.notes,
+      })
+      setEditingId(null)
+      setEditForm(null)
+      const newRecords = await import('@/app/actions/savings').then((m) => m.getSavingsRecords(selectedMonth))
+      setRecords(newRecords)
+      const newData = await import('@/app/actions/savings').then((m) => m.getSavingsOverview())
+      setData(newData)
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const handleDeleteRecord = async (recordId: string) => {
+    if (!confirm('Delete this record?')) return
+    setLoading(true)
+    try {
+      await deleteSavingsRecord(selectedMonth, recordId)
+      const newRecords = await import('@/app/actions/savings').then((m) => m.getSavingsRecords(selectedMonth))
+      setRecords(newRecords)
+      const newData = await import('@/app/actions/savings').then((m) => m.getSavingsOverview())
+      setData(newData)
+    } finally {
+      setLoading(false)
+    }
   }
 
   const monthlyGoal = data.monthlySavings?.find((m: any) => m.month === selectedMonth)?.savingsGoal || 0
@@ -234,23 +276,54 @@ export function SavingsClient({ initialData }: any) {
                     <th className="px-4 py-2 text-left font-medium">Amount</th>
                     <th className="px-4 py-2 text-left font-medium">Location</th>
                     <th className="px-4 py-2 text-left font-medium">Notes</th>
+                    <th className="px-4 py-2 text-left font-medium">Actions</th>
                   </tr>
                 </thead>
                 <tbody>
                   {records.map((record: any) => (
                     <tr key={record.id} className="border-t border-border hover:bg-muted/30">
-                      <td className="px-4 py-3">
-                        {new Date(`${record.date}T00:00:00`).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
-                      </td>
-                      <td className="px-4 py-3 font-semibold text-emerald-600">{formatRM(record.amount)}</td>
-                      <td className="px-4 py-3">
-                        <span className={`inline-block px-2 py-1 rounded text-xs font-medium ${
-                          record.location === 'bank' ? 'bg-blue-100 text-blue-700' : 'bg-amber-100 text-amber-700'
-                        }`}>
-                          {record.location === 'bank' ? '🏦 Bank' : '💵 Cash'}
-                        </span>
-                      </td>
-                      <td className="px-4 py-3 text-muted-foreground">{record.notes || '—'}</td>
+                      {editingId === record.id ? (
+                        <>
+                          <td className="px-4 py-3">
+                            <Input type="date" value={editForm.date} onChange={(e) => setEditForm({...editForm, date: e.target.value})} className="w-full text-sm" />
+                          </td>
+                          <td className="px-4 py-3">
+                            <Input type="number" step="0.01" value={editForm.amount} onChange={(e) => setEditForm({...editForm, amount: e.target.value})} className="w-full text-sm" />
+                          </td>
+                          <td className="px-4 py-3">
+                            <select value={editForm.location} onChange={(e) => setEditForm({...editForm, location: e.target.value})} className="w-full border border-input rounded-md px-2 py-1 text-sm">
+                              <option value="bank">Bank</option>
+                              <option value="cash">Cash</option>
+                            </select>
+                          </td>
+                          <td className="px-4 py-3">
+                            <Input type="text" value={editForm.notes || ''} onChange={(e) => setEditForm({...editForm, notes: e.target.value})} placeholder="Notes" className="w-full text-sm" />
+                          </td>
+                          <td className="px-4 py-3 flex gap-1">
+                            <Button size="sm" onClick={handleSaveEdit} disabled={loading} className="text-xs">Save</Button>
+                            <Button size="sm" variant="outline" onClick={() => {setEditingId(null); setEditForm(null)}} className="text-xs">Cancel</Button>
+                          </td>
+                        </>
+                      ) : (
+                        <>
+                          <td className="px-4 py-3">
+                            {new Date(`${record.date}T00:00:00`).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+                          </td>
+                          <td className="px-4 py-3 font-semibold text-emerald-600">{formatRM(record.amount)}</td>
+                          <td className="px-4 py-3">
+                            <span className={`inline-block px-2 py-1 rounded text-xs font-medium ${
+                              record.location === 'bank' ? 'bg-blue-100 text-blue-700' : 'bg-amber-100 text-amber-700'
+                            }`}>
+                              {record.location === 'bank' ? '🏦 Bank' : '💵 Cash'}
+                            </span>
+                          </td>
+                          <td className="px-4 py-3 text-muted-foreground text-xs max-w-xs truncate">{record.notes || '—'}</td>
+                          <td className="px-4 py-3 flex gap-1">
+                            <Button size="sm" variant="outline" onClick={() => handleEditRecord(record)} disabled={loading} className="text-xs">Edit</Button>
+                            <Button size="sm" variant="outline" onClick={() => handleDeleteRecord(record.id)} disabled={loading} className="text-xs text-destructive">Delete</Button>
+                          </td>
+                        </>
+                      )}
                     </tr>
                   ))}
                 </tbody>

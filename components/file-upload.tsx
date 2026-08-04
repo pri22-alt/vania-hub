@@ -96,18 +96,44 @@ export function FileUpload({ onFileSelect, disabled, type = 'expense' }: FileUpl
 
   const startCamera = async () => {
     try {
-      const stream = await navigator.mediaDevices.getUserMedia({
-        video: { facingMode: 'environment' },
+      // First, check if we have permission to use the camera
+      const permission = await navigator.permissions?.query?.({ name: 'camera' })
+      
+      if (permission?.state === 'denied') {
+        alert('Camera permission is denied. Please enable it in your phone settings under Camera permissions.')
+        return
+      }
+
+      // Request camera access with constraints
+      const constraints = {
+        video: {
+          facingMode: { ideal: 'environment' },
+          width: { ideal: 1280 },
+          height: { ideal: 720 },
+        },
         audio: false,
-      })
+      }
+
+      const stream = await navigator.mediaDevices.getUserMedia(constraints as any)
+      
       if (videoRef.current) {
         videoRef.current.srcObject = stream
         streamRef.current = stream
         setShowCamera(true)
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error('[v0] Camera error:', error)
-      alert('Unable to access camera. Please check permissions.')
+      
+      // Provide specific error messages based on the error type
+      if (error.name === 'NotAllowedError') {
+        alert('Camera permission denied. Please grant camera permission in your device settings to use this feature.')
+      } else if (error.name === 'NotFoundError' || error.name === 'DevicesNotFoundError') {
+        alert('No camera found on your device.')
+      } else if (error.name === 'NotReadableError' || error.name === 'SecurityError') {
+        alert('Unable to access camera. It may be in use by another app or you may need to check permissions.')
+      } else {
+        alert(`Camera error: ${error.message || 'Unable to access camera. Please check permissions.'}`)
+      }
     }
   }
 

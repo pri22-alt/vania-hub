@@ -99,6 +99,25 @@ export async function getSavingsRecords(month: string): Promise<SavingsRecord[]>
   return savingsRecords[month] || []
 }
 
+export async function updateSavingsRecord(month: string, recordId: string, updates: Partial<SavingsRecord>) {
+  if (!savingsRecords[month]) return
+  
+  const index = savingsRecords[month].findIndex(r => r.id === recordId)
+  if (index === -1) return
+  
+  savingsRecords[month][index] = {
+    ...savingsRecords[month][index],
+    ...updates,
+  }
+  return savingsRecords[month][index]
+}
+
+export async function deleteSavingsRecord(month: string, recordId: string) {
+  if (!savingsRecords[month]) return
+  
+  savingsRecords[month] = savingsRecords[month].filter(r => r.id !== recordId)
+}
+
 export async function getSavingsOverview() {
   const monthlySavings = await calculateMonthlySavings()
   
