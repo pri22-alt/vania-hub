@@ -31,11 +31,24 @@ export function MaidList({ records }: { records: MaidRecord[] }) {
 
   const formatTime = (time: string | Date | null | undefined) => {
     if (!time) return '--'
-    return new Date(time).toLocaleTimeString('en-US', {
-      hour: '2-digit',
-      minute: '2-digit',
-      hour12: true,
-    })
+    
+    // If it's a time string in HH:MM format (local time), use it directly
+    if (typeof time === 'string' && time.includes(':') && !time.includes('T') && !time.includes('Z')) {
+      const [hours, minutes] = time.split(':')
+      const hour = parseInt(hours)
+      const isPM = hour >= 12
+      const displayHour = hour % 12 || 12
+      return `${displayHour}:${minutes} ${isPM ? 'PM' : 'AM'}`
+    }
+    
+    // Otherwise, parse as ISO date and extract local time without timezone conversion
+    const dateObj = typeof time === 'string' ? new Date(time) : time
+    const hours = dateObj.getHours()
+    const minutes = dateObj.getMinutes()
+    const isPM = hours >= 12
+    const displayHour = hours % 12 || 12
+    const paddedMinutes = minutes.toString().padStart(2, '0')
+    return `${displayHour}:${paddedMinutes} ${isPM ? 'PM' : 'AM'}`
   }
 
   const calculateDuration = (clockIn: string | Date | null | undefined, clockOut: string | Date | null | undefined) => {
