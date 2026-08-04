@@ -7,6 +7,9 @@ import { getExpenses } from './expenses'
 import { formatRM } from '@/lib/utils/currency'
 import { budgetAdjustments, updateBudgetAdjustmentSync, getBudgetAdjustment } from '@/lib/utils/budget-utils'
 
+// In-memory custom budget amounts (can be overridden from defaults)
+const customBudgetAmounts: { [key: number]: number } = {}
+
 // Get total spent for a category in the current month
 async function getSpentAmount(category: string, categoryType: string): Promise<number> {
   const now = new Date()
@@ -87,6 +90,10 @@ export async function updateBudgetAdjustment(budgetId: number, month: string, ca
   updateBudgetAdjustmentSync(budgetId, month, carryForward, extraFunds)
 }
 
+export async function updateBudgetAmount(budgetId: number, newAmount: number) {
+  customBudgetAmounts[budgetId] = newAmount
+}
+
 export async function getBudgets() {
   return DEFAULT_BUDGETS
 }
@@ -122,11 +129,12 @@ export async function getAllBudgetsStatus() {
 
     return {
       ...budget,
-      remaining,
-      percentage: Math.min(100, Math.round(percentage)),
-      isAlert,
-      isOverBudget,
-      status: isOverBudget ? 'over' : isAlert ? 'warning' : 'ok',
+      budgetAmount: finalBudgetAmount,
+      remaining: finalBudgetAmount - spent,
+      percentage: Math.min(100, Math.round((spent / finalBudgetAmount) * 100)),
+      isAlert: (spent / finalBudgetAmount) * 100 >= (budget.alertThreshold || 80) || (spent > finalBudgetAmount),
+      isOverBudget: spent > finalBudgetAmount,
+      status: spent > finalBudgetAmount ? 'over' : (spent / finalBudgetAmount) * 100 >= (budget.alertThreshold || 80) ? 'warning' : 'ok',
     }
   })
 }

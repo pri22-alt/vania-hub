@@ -5,12 +5,13 @@ import { Card } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { formatRM } from '@/lib/utils/currency'
-import { updateBudgetAdjustment } from '@/app/actions/budgets'
+import { updateBudgetAdjustment, updateBudgetAmount } from '@/app/actions/budgets'
 import { getBudgetAdjustment } from '@/lib/utils/budget-utils'
 
 export function BudgetList({ budgets }: any) {
   const [expandedId, setExpandedId] = useState<number | null>(null)
   const [adjustments, setAdjustments] = useState<{ [key: number]: { carryForward: string; extraFunds: string } }>({})
+  const [customAmounts, setCustomAmounts] = useState<{ [key: number]: string }>({})
 
   const handleAdjustmentChange = (budgetId: number, field: 'carryForward' | 'extraFunds', value: string) => {
     setAdjustments({
@@ -31,6 +32,12 @@ export function BudgetList({ budgets }: any) {
       parseFloat(adj.carryForward) || 0,
       parseFloat(adj.extraFunds) || 0,
     )
+    
+    // Update custom budget amount if provided
+    if (customAmounts[budgetId]) {
+      await updateBudgetAmount(budgetId, parseFloat(customAmounts[budgetId]))
+    }
+    
     setExpandedId(null)
   }
 
@@ -143,6 +150,23 @@ export function BudgetList({ budgets }: any) {
             {/* Adjustments Section */}
             {isExpanded && (
               <div className="pt-4 border-t border-border space-y-3">
+                {/* Manual Budget Amount */}
+                <div className="flex flex-col gap-2 p-3 bg-blue-50 rounded-lg border border-blue-200">
+                  <label className="text-sm font-medium text-blue-900">Override Budget Amount</label>
+                  <div className="flex items-center gap-2">
+                    <span className="text-sm">RM</span>
+                    <Input
+                      type="number"
+                      step="0.01"
+                      placeholder={budget.budgetAmount.toString()}
+                      value={customAmounts[budget.id] ?? ''}
+                      onChange={(e) => setCustomAmounts({ ...customAmounts, [budget.id]: e.target.value })}
+                      className="flex-1"
+                    />
+                  </div>
+                  <p className="text-xs text-blue-700">Leave empty to use default ({formatRM(budget.budgetAmount)})</p>
+                </div>
+
                 <div className="grid grid-cols-2 gap-3">
                   <div className="flex flex-col gap-2">
                     <label className="text-sm font-medium">Carry Forward from Previous</label>
